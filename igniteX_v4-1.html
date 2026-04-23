@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IgniteX Quiz Series — E-Cell CIIEIR Doon University</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #05071a;
+    --surface:   rgba(255,255,255,0.05);
+    --border:    rgba(255,255,255,0.09);
+    --indigo:    #818cf8;
+    --teal:      #2dd4bf;
+    --green:     #4ade80;
+    --amber:     #fbbf24;
+    --red:       #f87171;
+    --text:      #f1f5f9;
+    --muted:     #94a3b8;
+    --card-blur: blur(22px);
+    --accent:    #c084fc;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── BACKGROUND ── */
+  #bg-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 10%, rgba(99,102,241,0.22) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 85% 85%, rgba(45,212,191,0.17) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(192,132,252,0.08) 0%, transparent 70%),
+      #05071a;
+  }
+
+  #mesh-overlay {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(129,140,248,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(129,140,248,0.025) 1px, transparent 1px);
+    background-size: 80px 80px;
+    animation: meshDrift 20s linear infinite;
+  }
+  @keyframes meshDrift { from { background-position: 0 0; } to { background-position: 80px 80px; } }
+
+  .orb {
+    position: fixed; border-radius: 50%;
+    filter: blur(80px); pointer-events: none; z-index: 0;
+    animation: orbFloat 14s ease-in-out infinite alternate;
+  }
+  .orb-1 { width: 600px; height: 600px; top: -160px; left: -100px; background: rgba(99,102,241,0.16); animation-duration: 12s; }
+  .orb-2 { width: 450px; height: 450px; bottom: -80px; right: -80px; background: rgba(45,212,191,0.13); animation-duration: 16s; }
+  .orb-3 { width: 300px; height: 300px; top: 40%; left: 55%; background: rgba(192,132,252,0.09); animation-duration: 10s; }
+  @keyframes orbFloat { from { transform: translate(0,0) scale(1); } to { transform: translate(30px,20px) scale(1.07); } }
+
+  #stars { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .star { position: absolute; border-radius: 50%; background: white; animation: twinkle var(--dur, 3s) ease-in-out infinite alternate; }
+  @keyframes twinkle { from { opacity: 0.05; } to { opacity: var(--peak, 0.7); } }
+
+  #particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .particle {
+    position: absolute;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--indigo);
+    animation: floatUp var(--dur, 8s) ease-in-out infinite;
+    opacity: 0;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) scale(0); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+  }
+
+  /* ── HEADER ── */
+  #header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 64px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 36px;
+    background: rgba(5,7,26,0.6);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(129,140,248,0.15);
+  }
+  #header::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--indigo), var(--teal), transparent);
+    opacity: 0.4;
+  }
+  #header-logo { display: flex; align-items: center; gap: 12px; }
+  #header-logo img { height: 44px; border-radius: 6px; object-fit: contain; filter: drop-shadow(0 0 8px rgba(129,140,248,0.3)); }
+  #header-brand { display: flex; flex-direction: column; line-height: 1.2; }
+  #header-brand .brand-main { font-size: 0.95rem; font-weight: 700; color: var(--text); font-family: 'Syne', sans-serif; }
+  #header-brand .brand-sub  { font-size: 0.7rem; font-weight: 400; color: var(--muted); }
+  #header-title {
+    font-size: 0.85rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    font-family: 'Syne', sans-serif;
+    background: linear-gradient(135deg, var(--indigo), var(--teal));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  #header-counter { font-size: 0.78rem; font-weight: 500; color: var(--muted); min-width: 90px; text-align: right; }
+
+  #topic-badge {
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: var(--muted);
+    transition: all 0.4s;
+    display: none;
+  }
+  #topic-badge.visible { display: inline-block; }
+  #topic-badge.ai { border-color: rgba(129,140,248,0.4); color: var(--indigo); background: rgba(129,140,248,0.1); }
+  #topic-badge.geo { border-color: rgba(251,191,36,0.4); color: var(--amber); background: rgba(251,191,36,0.1); }
+  #topic-badge.ent { border-color: rgba(45,212,191,0.4); color: var(--teal); background: rgba(45,212,191,0.1); }
+  #topic-badge.gk { border-color: rgba(192,132,252,0.4); color: var(--accent); background: rgba(192,132,252,0.1); }
+
+  /* ── TIMER ── */
+  #timer-wrap {
+    position: fixed; top: 80px; right: 36px; z-index: 100;
+    display: none; flex-direction: column; align-items: center; gap: 4px;
+  }
+  #timer-wrap.visible { display: flex; }
+  #timer-ring { position: relative; width: 80px; height: 80px; filter: drop-shadow(0 0 12px rgba(45,212,191,0.4)); }
+  #timer-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  #timer-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 4; }
+  #timer-ring .ring-fill {
+    fill: none; stroke: var(--teal); stroke-width: 4; stroke-linecap: round;
+    stroke-dasharray: 213.6; stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 0.5s;
+  }
+  #timer-num {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem; font-weight: 700; font-family: 'Syne', sans-serif;
+  }
+  #timer-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* ── SLIDES ── */
+  #stage { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 80px 60px 40px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.45s ease, transform 0.45s ease;
+    transform: translateY(18px);
+  }
+  .slide.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+  .slide.exit { opacity: 0; transform: translateY(-18px); }
+
+  /* ── INTRO SLIDE ── */
+  .slide-intro .intro-eyebrow {
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--teal); margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .slide-intro .intro-eyebrow::before,
+  .slide-intro .intro-eyebrow::after {
+    content: ''; display: block; width: 36px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--teal));
+  }
+  .slide-intro .intro-eyebrow::before { transform: scaleX(-1); }
+
+  .slide-intro h1 {
+    font-size: clamp(3.2rem, 6vw, 5.5rem);
+    font-weight: 800; line-height: 1.05; text-align: center;
+    font-family: 'Syne', sans-serif;
+    background: linear-gradient(135deg, #e0e7ff 0%, var(--indigo) 40%, var(--teal) 80%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 0 40px rgba(129,140,248,0.3));
+  }
+
+  .topic-pills { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 36px; }
+  .topic-pill {
+    padding: 6px 16px; border-radius: 30px; font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .topic-pill.ai   { background: rgba(129,140,248,0.12); color: var(--indigo); border: 1px solid rgba(129,140,248,0.3); }
+  .topic-pill.geo  { background: rgba(251,191,36,0.12); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
+  .topic-pill.ent  { background: rgba(45,212,191,0.12); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
+
+  /* ── QUESTION SLIDE ── */
+  .qnum {
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--indigo); margin-bottom: 32px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .qnum::before, .qnum::after { content: ''; display: block; width: 32px; height: 2px; background: linear-gradient(90deg, var(--indigo), var(--teal)); border-radius: 2px; }
+
+  .q-text {
+    font-size: clamp(1.55rem, 2.6vw, 2.3rem);
+    font-weight: 700; line-height: 1.38; text-align: center; max-width: 74%;
+    font-family: 'Syne', sans-serif;
+    background: linear-gradient(160deg, #fff 60%, rgba(255,255,255,0.75));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .q-big-num {
+    position: absolute; bottom: 60px; right: 60px;
+    font-size: 9rem; font-weight: 800; font-family: 'Syne', sans-serif;
+    color: rgba(129,140,248,0.04); line-height: 1; pointer-events: none;
+    user-select: none;
+  }
+
+  /* ── OPTIONS SLIDE ── */
+  .opts-q {
+    font-size: clamp(1.3rem, 2.4vw, 2rem);
+    font-weight: 600; text-align: center; max-width: 88%;
+    color: rgba(148,163,184,0.85); margin-bottom: 28px; line-height: 1.5;
+  }
+  .slide-options-hindi .opts-q {
+    color: #fef3c7;
+  }
+  .options-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    width: min(1400px, 94vw);
+  }
+  .opt-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px; padding: 32px 36px;
+    display: flex; align-items: center; gap: 22px;
+    animation: cardIn 0.4s both;
+    transition: border-color 0.25s, background 0.25s, transform 0.2s, box-shadow 0.25s;
+    cursor: default;
+    min-height: 110px;
+  }
+  .opt-card:nth-child(1) { animation-delay: 0.05s; }
+  .opt-card:nth-child(2) { animation-delay: 0.12s; }
+  .opt-card:nth-child(3) { animation-delay: 0.19s; }
+  .opt-card:nth-child(4) { animation-delay: 0.26s; }
+  .opt-card:hover {
+    border-color: rgba(129,140,248,0.35);
+    background: rgba(129,140,248,0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(129,140,248,0.12);
+  }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(18px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .opt-label {
+    width: 52px; height: 52px; flex-shrink: 0;
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; font-weight: 700;
+    background: rgba(129,140,248,0.12); color: var(--indigo);
+    border: 1px solid rgba(129,140,248,0.25);
+    font-family: 'Syne', sans-serif;
+    transition: all 0.25s;
+  }
+  .opt-card:hover .opt-label {
+    background: rgba(129,140,248,0.25);
+    border-color: rgba(129,140,248,0.5);
+  }
+  .opt-text { font-size: clamp(1.1rem, 2vw, 1.65rem); font-weight: 600; color: var(--text); line-height: 1.4; }
+
+  /* ── ANSWER SLIDE ── */
+  .ans-label {
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--green); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .ans-label::before {
+    content: '✓'; width: 22px; height: 22px; background: rgba(74,222,128,0.15);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; border: 1px solid rgba(74,222,128,0.3);
+  }
+  .ans-answer {
+    font-size: clamp(1.6rem, 3vw, 2.6rem);
+    font-weight: 800; color: var(--green); text-align: center; margin-bottom: 32px;
+    font-family: 'Syne', sans-serif;
+    text-shadow: 0 0 40px rgba(74,222,128,0.35);
+    max-width: 80%;
+    line-height: 1.2;
+  }
+  .ans-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; padding: 28px 40px; max-width: 720px; text-align: center;
+    border-top: 2px solid var(--teal);
+    box-shadow: 0 0 40px rgba(45,212,191,0.06);
+    position: relative; overflow: hidden;
+  }
+  .ans-card::before {
+    content: '💡';
+    position: absolute; top: 16px; right: 20px;
+    font-size: 1rem; opacity: 0.5;
+  }
+  .ans-card-label {
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--teal); margin-bottom: 10px;
+  }
+  .exp-text { font-size: 0.98rem; line-height: 1.75; color: var(--muted); }
+
+  /* ── END SLIDE ── */
+  .slide-end h1 {
+    font-size: clamp(3.5rem, 7vw, 6rem); font-weight: 900;
+    font-family: 'Syne', sans-serif;
+    background: linear-gradient(135deg, #e0e7ff, var(--indigo), var(--teal));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+  }
+  .slide-end p { font-size: 1.1rem; color: var(--muted); margin-bottom: 40px; }
+  .end-badge {
+    margin-top: 10px; padding: 14px 36px; border-radius: 50px;
+    background: rgba(129,140,248,0.08); border: 1px solid rgba(129,140,248,0.3);
+    font-size: 0.82rem; font-weight: 600; color: var(--indigo);
+    font-family: 'Syne', sans-serif; letter-spacing: 0.05em;
+  }
+  .end-confetti { font-size: 3rem; margin-bottom: 12px; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+
+
+  /* ── PROGRESS ── */
+  #progress-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 3px; z-index: 100;
+    background: rgba(255,255,255,0.04);
+  }
+  #progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--indigo), var(--teal), var(--accent));
+    transition: width 0.5s ease;
+    box-shadow: 0 0 8px rgba(129,140,248,0.5);
+  }
+
+  /* ── GLOW PULSE on answer ── */
+  @keyframes glowPulse { 0%,100% { box-shadow: 0 0 20px rgba(74,222,128,0.1); } 50% { box-shadow: 0 0 50px rgba(74,222,128,0.25); } }
+  .slide-answer .ans-card { animation: glowPulse 3s ease-in-out infinite; }
+
+  /* ── HINDI SLIDE ── */
+  .slide-hindi {
+    background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(251,191,36,0.07) 0%, transparent 70%);
+  }
+  .hindi-qnum {
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(251,191,36,0.5); margin-bottom: 28px;
+  }
+  .hindi-question {
+    font-size: clamp(1.7rem, 3.2vw, 2.8rem);
+    font-weight: 700; line-height: 1.55; text-align: center;
+    max-width: 78%;
+    color: #fef3c7;
+    text-shadow: 0 0 60px rgba(251,191,36,0.2);
+    animation: hindiReveal 0.6s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes hindiReveal {
+    from { opacity: 0; transform: translateY(24px) scale(0.96); letter-spacing: 0.08em; }
+    to   { opacity: 1; transform: translateY(0) scale(1); letter-spacing: normal; }
+  }
+  .hindi-divider {
+    width: 60px; height: 2px; margin: 28px auto 0;
+    background: linear-gradient(90deg, transparent, var(--amber), transparent);
+    border-radius: 2px;
+    animation: hindiReveal 0.8s 0.2s both;
+  }
+
+  /* Mute indicator */
+  #mute-toast {
+    position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%);
+    background: rgba(15,20,50,0.92); border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(16px); border-radius: 30px;
+    padding: 10px 24px; font-size: 0.8rem; font-weight: 600;
+    color: var(--text); z-index: 200; pointer-events: none;
+    opacity: 0; transition: opacity 0.3s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #mute-toast.show { opacity: 1; }
+
+  /* ── QUESTION NAVIGATOR ── */
+  #nav-panel {
+    position: fixed; top: 0; right: 0; width: 320px; height: 100vh;
+    background: rgba(5,7,26,0.97); backdrop-filter: blur(30px);
+    border-left: 1px solid rgba(129,140,248,0.2);
+    z-index: 500; display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+    box-shadow: -20px 0 60px rgba(0,0,0,0.4);
+  }
+  #nav-panel.open { transform: translateX(0); }
+  #nav-panel-header {
+    padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(129,140,248,0.06);
+  }
+  #nav-panel-header h3 {
+    font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    background: linear-gradient(135deg, var(--indigo), var(--teal));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  #nav-close {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    color: var(--muted); border-radius: 8px; padding: 6px 10px;
+    cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+  }
+  #nav-close:hover { background: rgba(248,113,113,0.2); color: var(--red); border-color: rgba(248,113,113,0.3); }
+  #nav-legend {
+    padding: 10px 20px; display: flex; gap: 10px; flex-wrap: wrap;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .leg-item {
+    padding: 3px 10px; border-radius: 20px; font-size: 0.62rem;
+    font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .leg-item.ai  { background: rgba(129,140,248,0.15); color: var(--indigo); border: 1px solid rgba(129,140,248,0.3); }
+  .leg-item.geo { background: rgba(251,191,36,0.12); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
+  .leg-item.ent { background: rgba(45,212,191,0.12); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
+  .leg-item.gk  { background: rgba(192,132,252,0.12); color: var(--accent); border: 1px solid rgba(192,132,252,0.3); }
+  #nav-grid {
+    flex: 1; overflow-y: auto; padding: 14px;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px;
+    scrollbar-width: thin; scrollbar-color: rgba(129,140,248,0.2) transparent;
+  }
+  .nav-q-btn {
+    aspect-ratio: 1; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03); cursor: pointer;
+    font-size: 0.72rem; font-weight: 700; font-family: 'Syne', sans-serif;
+    color: var(--muted); transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-q-btn:hover { transform: scale(1.08); }
+  .nav-q-btn.ai  { border-color: rgba(129,140,248,0.4); color: var(--indigo); background: rgba(129,140,248,0.1); }
+  .nav-q-btn.geo { border-color: rgba(251,191,36,0.4); color: var(--amber); background: rgba(251,191,36,0.1); }
+  .nav-q-btn.ent { border-color: rgba(45,212,191,0.4); color: var(--teal); background: rgba(45,212,191,0.1); }
+  .nav-q-btn.gk  { border-color: rgba(192,132,252,0.4); color: var(--accent); background: rgba(192,132,252,0.1); }
+  .nav-q-btn.active { box-shadow: 0 0 14px rgba(129,140,248,0.5); transform: scale(1.1); }
+  .nav-q-btn.ai.active  { box-shadow: 0 0 14px rgba(129,140,248,0.6); }
+  .nav-q-btn.geo.active { box-shadow: 0 0 14px rgba(251,191,36,0.5); }
+  .nav-q-btn.ent.active { box-shadow: 0 0 14px rgba(45,212,191,0.5); }
+  .nav-q-btn.gk.active  { box-shadow: 0 0 14px rgba(192,132,252,0.5); }
+  #nav-overlay {
+    position: fixed; inset: 0; z-index: 499;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(3px);
+    display: none; cursor: pointer;
+  }
+  #nav-overlay.open { display: block; }
+
+  /* ── FLOATING ACTION BUTTONS — invisible but functional ── */
+  .fab-group {
+    position: fixed; bottom: 28px; right: 28px; z-index: 300;
+    display: flex; flex-direction: column; gap: 10px; align-items: flex-end;
+  }
+  .fab {
+    width: 48px; height: 48px; border-radius: 14px;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1.1rem;
+    transition: all 0.25s;
+    color: transparent;
+    background: transparent !important;
+    opacity: 0;
+    pointer-events: all;
+  }
+  .fab:hover { transform: none; }
+  #fab-nav   { }
+  #fab-nav:hover { }
+  #fab-edit  { }
+  #fab-edit:hover { }
+  #fab-edit.active { }
+
+  /* ── PREV / NEXT BUTTONS — hidden from audience, keyboard only ── */
+  .slide-nav-btn {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    z-index: 200;
+    color: transparent;
+    background: transparent;
+    border: none;
+    cursor: default;
+    padding: 18px 14px; font-size: 1.4rem; line-height: 1;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .slide-nav-btn:hover { }
+  .slide-nav-btn:disabled { }
+  #btn-prev { left: 16px; }
+  #btn-next { right: 16px; }
+
+  /* ── EDIT MODE ── */
+  .edit-mode-bar {
+    position: fixed; top: 64px; left: 0; right: 0; z-index: 300;
+    background: rgba(251,191,36,0.12); border-bottom: 1px solid rgba(251,191,36,0.3);
+    padding: 8px 20px; display: none; align-items: center; gap: 14px;
+    backdrop-filter: blur(16px);
+  }
+  .edit-mode-bar.visible { display: flex; }
+  .edit-mode-bar span { font-size: 0.72rem; font-weight: 600; color: var(--amber); letter-spacing: 0.1em; text-transform: uppercase; }
+  .edit-save-btn {
+    padding: 6px 18px; border-radius: 20px; cursor: pointer;
+    background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.35);
+    color: var(--green); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; transition: all 0.2s;
+  }
+  .edit-save-btn:hover { background: rgba(74,222,128,0.3); }
+  .edit-cancel-btn {
+    padding: 6px 18px; border-radius: 20px; cursor: pointer;
+    background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.25);
+    color: var(--red); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; transition: all 0.2s;
+  }
+  .edit-cancel-btn:hover { background: rgba(248,113,113,0.25); }
+  body.edit-mode .q-text,
+  body.edit-mode .opts-q,
+  body.edit-mode .hindi-question,
+  body.edit-mode .ans-answer,
+  body.edit-mode .exp-text {
+    outline: 2px dashed rgba(251,191,36,0.4) !important;
+    outline-offset: 6px; border-radius: 8px;
+    cursor: text !important;
+    -webkit-text-fill-color: inherit !important;
+  }
+  body.edit-mode .opt-text {
+    outline: 2px dashed rgba(45,212,191,0.35) !important;
+    outline-offset: 3px; border-radius: 6px;
+    cursor: text !important;
+  }
+  body.edit-mode .q-text:focus,
+  body.edit-mode .opts-q:focus,
+  body.edit-mode .hindi-question:focus,
+  body.edit-mode .ans-answer:focus,
+  body.edit-mode .exp-text:focus,
+  body.edit-mode .opt-text:focus {
+    outline-color: rgba(251,191,36,0.9) !important;
+    background: rgba(251,191,36,0.05);
+  }
+  #edit-toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    background: rgba(74,222,128,0.9); color: #05071a;
+    padding: 10px 24px; border-radius: 30px; font-size: 0.8rem; font-weight: 700;
+    z-index: 400; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    white-space: nowrap;
+  }
+  #edit-toast.show { opacity: 1; }
+
+  /* ── RULES SLIDES ── */
+  .slide-rules {
+    background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(99,102,241,0.15) 0%, transparent 70%);
+  }
+  .rules-overlay {
+    position: fixed; inset: 0; z-index: 600;
+    background: rgba(5,7,26,0.97);
+    backdrop-filter: blur(30px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 80px 60px 40px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1);
+    transform: translateY(0);
+  }
+  .rules-overlay.active { opacity: 1; pointer-events: all; }
+
+  .rules-round-badge {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
+    padding: 6px 20px; border-radius: 30px; margin-bottom: 22px;
+    display: inline-flex; align-items: center; gap: 8px;
+    animation: rulesEntry 0.5s 0.1s both;
+  }
+  .rules-round-badge.r1 { background: rgba(45,212,191,0.12); border: 1px solid rgba(45,212,191,0.35); color: var(--teal); }
+  .rules-round-badge.r2 { background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.35); color: var(--amber); }
+  .rules-round-badge.r3 { background: rgba(192,132,252,0.12); border: 1px solid rgba(192,132,252,0.35); color: var(--accent); }
+
+  .rules-title {
+    font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+    font-weight: 800; font-family: 'Syne', sans-serif; text-align: center;
+    margin-bottom: 10px; line-height: 1.1;
+    animation: rulesEntry 0.5s 0.18s both;
+  }
+  .rules-title.r1 { background: linear-gradient(135deg, var(--teal), #e0e7ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .rules-title.r2 { background: linear-gradient(135deg, var(--amber), #fff7ed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .rules-title.r3 { background: linear-gradient(135deg, var(--accent), #f3e8ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .rules-subtitle {
+    font-size: 0.8rem; color: var(--muted); font-weight: 500; text-align: center;
+    margin-bottom: 36px; letter-spacing: 0.05em;
+    animation: rulesEntry 0.5s 0.24s both;
+  }
+
+  .rules-body {
+    display: grid; gap: 24px; width: 100%; max-width: 1100px;
+    animation: rulesEntry 0.6s 0.3s both;
+  }
+  .rules-body.two-col { grid-template-columns: 1fr 1fr; }
+  .rules-body.one-col { grid-template-columns: 1fr; }
+
+  .rules-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; padding: 26px 32px;
+    backdrop-filter: blur(16px);
+    position: relative; overflow: hidden;
+  }
+  .rules-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  }
+  .rules-card.teal::before { background: linear-gradient(90deg, transparent, var(--teal), transparent); }
+  .rules-card.amber::before { background: linear-gradient(90deg, transparent, var(--amber), transparent); }
+  .rules-card.accent::before { background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+  .rules-card.indigo::before { background: linear-gradient(90deg, transparent, var(--indigo), transparent); }
+
+  .rules-card-title {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .rules-card-title.teal { color: var(--teal); }
+  .rules-card-title.amber { color: var(--amber); }
+  .rules-card-title.accent { color: var(--accent); }
+  .rules-card-title.indigo { color: var(--indigo); }
+
+  .rules-list { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+  .rules-list li {
+    font-size: clamp(0.82rem, 1.4vw, 1.05rem);
+    color: rgba(241,245,249,0.88); line-height: 1.6;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .rules-list li::before {
+    content: '›'; font-size: 1.1rem; flex-shrink: 0; margin-top: -1px;
+    font-weight: 700; color: var(--muted);
+  }
+
+  .scoring-row {
+    display: flex; align-items: center; gap: 14px; padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .scoring-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .scoring-badge {
+    flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+    font-size: 0.9rem; font-weight: 800; font-family: 'Syne', sans-serif; min-width: 80px; text-align: center;
+  }
+  .scoring-badge.pos { background: rgba(74,222,128,0.15); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+  .scoring-badge.neg { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+  .scoring-badge.zero { background: rgba(148,163,184,0.1); color: var(--muted); border: 1px solid rgba(148,163,184,0.2); }
+  .scoring-desc { font-size: clamp(0.8rem, 1.3vw, 1rem); color: rgba(241,245,249,0.8); line-height: 1.5; }
+
+  .rules-close-hint {
+    position: absolute; bottom: 20px; right: 28px;
+    font-size: 0.62rem; color: rgba(148,163,184,0.35); letter-spacing: 0.1em;
+    font-weight: 500;
+  }
+  .rules-editable-note {
+    position: absolute; bottom: 20px; left: 28px;
+    font-size: 0.62rem; color: rgba(148,163,184,0.3); letter-spacing: 0.08em;
+  }
+
+  @keyframes rulesEntry {
+    from { opacity: 0; transform: translateY(22px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Edit mode for rules */
+  body.edit-mode .rules-list li,
+  body.edit-mode .scoring-desc,
+  body.edit-mode .rules-title,
+  body.edit-mode .rules-subtitle {
+    outline: 2px dashed rgba(251,191,36,0.4) !important;
+    outline-offset: 4px; border-radius: 6px;
+    cursor: text !important;
+    -webkit-text-fill-color: inherit !important;
+  }
+
+</style>
+</head>
+<body>
+
+<div id="bg-canvas"></div>
+<div id="mesh-overlay"></div>
+<div id="stars"></div>
+<div id="particles"></div>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<header id="header">
+  <div id="header-logo">
+    <img src="download.jpeg" alt="Logo" onerror="this.style.display='none'"/>
+    <div id="header-brand">
+      <span class="brand-main">E-Cell CIIEIR</span>
+      <span class="brand-sub">Doon University</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <span id="topic-badge"></span>
+    <div id="header-title">IgniteX Quiz Series</div>
+  </div>
+  <div id="header-counter"></div>
+</header>
+
+<div id="timer-wrap">
+  <div id="timer-ring">
+    <svg viewBox="0 0 80 80">
+      <circle class="ring-bg" cx="40" cy="40" r="34"/>
+      <circle class="ring-fill" id="ring-circle" cx="40" cy="40" r="34"/>
+    </svg>
+    <div id="timer-num">60</div>
+  </div>
+  <div id="timer-label">seconds</div>
+</div>
+
+<div id="mute-toast"></div>
+
+<div id="stage"></div>
+
+
+<div id="progress-bar"><div id="progress-fill"></div></div>
+
+<script>
+// ─── AUDIO ───
+const qSound = new Audio('kbc-question.mp3');
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function ensureAudioCtx() { if (!audioCtx) audioCtx = new AudioCtx(); }
+
+function playTick(urgent) {
+  try {
+    ensureAudioCtx();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(urgent ? 880 : 660, audioCtx.currentTime);
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(urgent ? 0.18 : 0.1, audioCtx.currentTime + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+    osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.07);
+  } catch(e) {}
+}
+
+function playUrgentBeep() {
+  try {
+    ensureAudioCtx();
+    for (let i = 0; i < 3; i++) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.frequency.value = 1100; osc.type = 'square';
+      gain.gain.setValueAtTime(0, audioCtx.currentTime + i*0.15);
+      gain.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + i*0.15 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i*0.15 + 0.1);
+      osc.start(audioCtx.currentTime + i*0.15); osc.stop(audioCtx.currentTime + i*0.15 + 0.11);
+    }
+  } catch(e) {}
+}
+
+function playAnswerReveal() {
+  try {
+    ensureAudioCtx();
+    const ctx = audioCtx; const now = ctx.currentTime;
+    // Layer 1: Bass
+    const bassOsc = ctx.createOscillator(); const bassGain = ctx.createGain();
+    bassOsc.connect(bassGain); bassGain.connect(ctx.destination);
+    bassOsc.type = 'sine'; bassOsc.frequency.setValueAtTime(55, now);
+    bassOsc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+    bassGain.gain.setValueAtTime(0, now); bassGain.gain.linearRampToValueAtTime(0.55, now + 0.02);
+    bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    bassOsc.start(now); bassOsc.stop(now + 0.36);
+
+    // Layer 2: Sweep
+    const sweepOsc = ctx.createOscillator(); const sweepGain = ctx.createGain();
+    const sweepFilter = ctx.createBiquadFilter();
+    sweepOsc.connect(sweepFilter); sweepFilter.connect(sweepGain); sweepGain.connect(ctx.destination);
+    sweepOsc.type = 'sawtooth'; sweepFilter.type = 'lowpass';
+    sweepFilter.frequency.setValueAtTime(200, now + 0.05); sweepFilter.frequency.exponentialRampToValueAtTime(3000, now + 0.55);
+    sweepOsc.frequency.setValueAtTime(110, now + 0.05); sweepOsc.frequency.exponentialRampToValueAtTime(880, now + 0.55);
+    sweepGain.gain.setValueAtTime(0, now + 0.05); sweepGain.gain.linearRampToValueAtTime(0.18, now + 0.12);
+    sweepGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    sweepOsc.start(now + 0.05); sweepOsc.stop(now + 0.61);
+
+    // Layer 3: Chord
+    const chord = [261.63, 329.63, 392.00, 523.25];
+    chord.forEach((freq, i) => {
+      const o = ctx.createOscillator(); const g = ctx.createGain(); const pan = ctx.createStereoPanner();
+      o.connect(g); g.connect(pan); pan.connect(ctx.destination);
+      o.type = 'triangle'; o.frequency.value = freq; pan.pan.value = (i - 1.5) * 0.25;
+      const t = now + 0.3 + i * 0.07;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.28, t + 0.03);
+      g.gain.setValueAtTime(0.28, t + 0.18); g.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
+      o.start(t); o.stop(t + 0.66);
+    });
+  } catch(e) {}
+}
+
+document.addEventListener('click', ensureAudioCtx, { once: true });
+document.addEventListener('keydown', ensureAudioCtx, { once: true });
+
+// ─── QUIZ DATA ───
+// IMPORTANT: Notice the addition of `opt` (English) AND `h_opt` (Hindi) arrays for bilingual support.
+const quiz = [
+  // ════════ TIER 1: EASY (1-30) ════════
+  {topic:"gk", q:"Which location serves as the official summer capital of Uttarakhand?", h:"उत्तराखंड की आधिकारिक ग्रीष्मकालीन राजधानी कौन सी है?", opt:["Bhararisain","Dehradun","Nainital","Pauri"], h_opt:["भरारीसैंण","देहरादून","नैनीताल","पौड़ी"], a:"Bhararisain", exp:"Bhararisain was declared the official summer capital to honor the statehood movement. It is located in Chamoli district's Gairsain tehsil, around 14 km from the town of Gairsain."},
+  {topic:"gk", q:"What is the official state bird of Uttarakhand?", h:"उत्तराखंड का राजकीय पक्षी क्या है?", opt:["Himalayan Monal","Common Hill Myna","Red Jungle Fowl","Eurasian Hoopoe"], h_opt:["हिमालयन मोनाल","कॉमन हिल मैना","रेड जंगल फाउल","यूरेशियन हूपो"], a:"Himalayan Monal", exp:"The Monal is a vibrant high-altitude pheasant native to the Himalayas."},
+  {topic:"gk", q:"What is the state flower of Uttarakhand?", h:"उत्तराखंड का राजकीय पुष्प क्या है?", opt:["Alpine Buransh","Himalayan Blue Poppy","Hill Rhododendron","Brahma Kamal"], h_opt:["अल्पाइन बुरांश","हिमालयन ब्लू पॉपी","हिल रोडोडेंड्रोन","ब्रह्म कमल"], a:"Alpine Buransh", exp:"Buransh is known for its bright red flowers that bloom across the hills in spring."},
+  {topic:"gk", q:"How many administrative districts are there in Uttarakhand?", h:"उत्तराखंड में कितने प्रशासनिक जिले हैं?", opt:["Eleven","Thirteen","Fifteen","Nine"], h_opt:["ग्यारह","तेरह","पंद्रह","नौ"], a:"Thirteen", exp:"Uttarakhand has 13 districts divided into the Garhwal and Kumaon administrative divisions."},
+  {topic:"gk", q:"The massive 2023 land subsidence crisis that caused cracks in hundreds of buildings occurred in which Uttarakhand town?", h:"2023 में भू-धंसाव संकट किस शहर में हुआ?", opt:["Rishikesh","Joshimath","Haldwani","Mussoorie"], h_opt:["ऋषिकेश","जोशीमठ","हल्द्वानी","मसूरी"], a:"Joshimath", exp:"Joshimath in Chamoli district faced severe sinking due to geographical fragility."},
+  {topic:"gk", q:"In early 2024, Uttarakhand became the first state in independent India to pass a bill implementing which code?", h:"2024 की शुरुआत में, उत्तराखंड कौन सा कोड लागू करने वाला भारत का पहला राज्य बना?", opt:["Universal Basic Income","Uniform Civil Code","Right to Health Act","Digital Data Protection"], h_opt:["यूनिवर्सल बेसिक इनकम","यूनिफॉर्म सिविल कोड","स्वास्थ्य का अधिकार","डिजिटल डेटा संरक्षण"], a:"Uniform Civil Code", exp:"The Uttarakhand assembly passed the historic UCC bill in February 2024."},
+  {topic:"gk", q:"The successful November 2023 rescue of trapped workers took place in the Silkyara tunnel located in which district?", h:"नवंबर 2023 में फंसे हुए मजदूरों का बचाव किस जिले की सिल्कयारा सुरंग में हुआ?", opt:["Pithoragarh","Uttarkashi","Rudraprayag","Champawat"], h_opt:["पिथौरागढ़","उत्तरकाशी","रुद्रप्रयाग","चंपावत"], a:"Uttarkashi", exp:"The workers were trapped for 17 days in the under-construction tunnel in Uttarkashi."},
+  {topic:"gk", q:"The famous Kedarnath Temple is situated in which district of Uttarakhand?", h:"प्रसिद्ध केदारनाथ मंदिर उत्तराखंड के किस जिले में स्थित है?", opt:["Chamoli","Rudraprayag","Uttarkashi","Pauri Garhwal"], h_opt:["चमोली","रुद्रप्रयाग","उत्तरकाशी","पौड़ी गढ़वाल"], a:"Rudraprayag", exp:"It is located in the Garhwal Himalayas in Rudraprayag near the Mandakini river."},
+  {topic:"gk", q:"Which is the oldest national park in India, located in Uttarakhand?", h:"उत्तराखंड में स्थित भारत का सबसे पुराना राष्ट्रीय उद्यान कौन सा है?", opt:["Rajaji National Park","Nanda Devi Reserve","Valley of Flowers","Jim Corbett Park"], h_opt:["राजाजी नेशनल पार्क","नंदा देवी रिजर्व","फूलों की घाटी","जिम कॉर्बेट पार्क"], a:"Jim Corbett Park", exp:"Established in 1936 to protect the Bengal tiger, it was originally named Hailey National Park."},
+  {topic:"gk", q:"Tehri Dam, the tallest dam in India, is constructed on which primary river?", h:"भारत का सबसे ऊंचा बांध, टिहरी बांध, किस मुख्य नदी पर बनाया गया है?", opt:["Bhagirathi River","Alaknanda River","Mandakini River","Yamuna River"], h_opt:["भागीरथी नदी","अलकनंदा नदी","मंदाकिनी नदी","यमुना नदी"], a:"Bhagirathi River", exp:"Tehri Dam is located on the Bhagirathi River in the Tehri Garhwal district."},
+  {topic:"ai", q:"What does the acronym NLP stand for in Artificial Intelligence?", h:"AI में NLP का पूर्ण रूप क्या है?", opt:["Natural Language Processing","Neural Learning Protocol","Network Logic Platform","Normalized Layered Prediction"], h_opt:["नेचुरल लैंग्वेज प्रोसेसिंग","न्यूरल लर्निंग प्रोटोकॉल","नेटवर्क लॉजिक प्लेटफॉर्म","नॉर्मलाइज्ड लेयर्ड प्रेडिक्शन"], a:"Natural Language Processing", exp:"NLP gives computers the ability to understand text and spoken words."},
+  {topic:"ai", q:"Which organization developed the widely successful generative chatbot ChatGPT?", h:"किस संगठन ने व्यापक रूप से सफल जनरेटिव चैटबॉट ChatGPT विकसित किया?", opt:["OpenAI","Google DeepMind","Anthropic","Meta AI Research"], h_opt:["ओपनएआई","गूगल डीपमाइंड","एंथ्रोपिक","मेटा AI रिसर्च"], a:"OpenAI", exp:"OpenAI launched ChatGPT in late 2022, sparking the global generative AI boom."},
+  {topic:"ai", q:"When an AI states something as a fact that is actually false, what is it called?", h:"जब AI किसी गलत बात को तथ्य के रूप में बताता है, तो उसे क्या कहते हैं?", opt:["Hallucination","Overfitting","Bias Error","Confabulation"], h_opt:["हैलुसिनेशन","ओवरफिटिंग","बायस एरर","कन्फेब्यूलेशन"], a:"Hallucination", exp:"Hallucinations occur when a language model confidently makes up false information."},
+  {topic:"ai", q:"What hardware component, originally built for gaming, is primarily used to train AI models?", h:"कौन सा हार्डवेयर घटक मुख्य रूप से AI मॉडल को प्रशिक्षित करने के लिए उपयोग किया जाता है?", opt:["Graphics Processing Unit","Tensor Processing Unit","Field Programmable Gate Array","Neural Processing Unit"], h_opt:["ग्राफिक्स प्रोसेसिंग यूनिट","टेंसर प्रोसेसिंग यूनिट","फील्ड प्रोग्रामेबल गेट एरे","न्यूरल प्रोसेसिंग यूनिट"], a:"Graphics Processing Unit", exp:"Graphics Processing Units from NVIDIA excel at the parallel math needed for AI."},
+  {topic:"ai", q:"What test was designed by a British mathematician to determine if a machine shows human intelligence?", h:"यह निर्धारित करने के लिए किस परीक्षण को तैयार किया गया कि क्या कोई मशीन मानव बुद्धि दिखाती है?", opt:["The Turing Test","The Loebner Test","The Winograd Challenge","The Imitation Game Protocol"], h_opt:["ट्यूरिंग टेस्ट","लोएबनर टेस्ट","विनोग्राड चैलेंज","इमिटेशन गेम प्रोटोकॉल"], a:"The Turing Test", exp:"The Turing Test evaluates if a machine can converse indistinguishably from a human."},
+  {topic:"ai", q:"Deep Learning is a subfield of machine learning inspired by the structure of what?", h:"डीप लर्निंग मशीन लर्निंग का एक उपक्षेत्र है जो किसकी संरचना से प्रेरित है?", opt:["The Human Brain","Statistical Decision Trees","Linear Regression Models","Bayesian Probability Networks"], h_opt:["मानव मस्तिष्क","सांख्यिकीय निर्णय वृक्ष","रैखिक प्रतिगमन मॉडल","बेयेसियन प्रायिकता नेटवर्क"], a:"The Human Brain", exp:"Deep learning uses artificial neural networks inspired by biological neurons."},
+  {topic:"ai", q:"Midjourney and Stable Diffusion are examples of AI systems that generate what?", h:"मिडजर्नी और स्टेबल डिफ्यूजन किन AI प्रणालियों के उदाहरण हैं?", opt:["Images and Visual Art","Audio and Music Tracks","Written Text and Essays","Video and Animations"], h_opt:["छवियां और दृश्य कला","ऑडियो और संगीत ट्रैक","लिखित पाठ और निबंध","वीडियो और एनिमेशन"], a:"Images and Visual Art", exp:"They are generative AI models that create high-quality images from text descriptions."},
+  {topic:"ai", q:"Apple Siri and Amazon Alexa are classic consumer examples of which AI technology?", h:"ऐप्पल सिरी और अमेज़ॅन एलेक्सा किस AI तकनीक के क्लासिक उपभोक्ता उदाहरण हैं?", opt:["Voice Assistants","Recommendation Engines","Computer Vision Systems","Autonomous Navigation AI"], h_opt:["वॉयस असिस्टेंट्स","रेकमेंडेशन इंजन","कंप्यूटर विज़न सिस्टम","ऑटोनॉमस नेविगेशन AI"], a:"Voice Assistants", exp:"They use speech recognition and natural language processing to assist users via voice."},
+  {topic:"ent", q:"What is the formal definition of an early stage 'Startup'?", h:"प्रारंभिक चरण के 'स्टार्टअप' की औपचारिक परिभाषा क्या है?", opt:["A young company developing a unique and scalable product","A franchise business replicating a proven existing model","A family-owned small business serving a local market","A subsidiary unit created by a large established corporation"], h_opt:["एक युवा कंपनी जो एक अद्वितीय और स्केलेबल उत्पाद विकसित कर रही है","एक फ्रेंचाइज़ व्यवसाय जो एक सिद्ध मौजूदा मॉडल को दोहराता है","स्थानीय बाजार की सेवा करने वाला एक परिवार के स्वामित्व वाला छोटा व्यवसाय","एक बड़े स्थापित निगम द्वारा बनाई गई सहायक इकाई"], a:"A young company developing a unique and scalable product", exp:"Startups focus on rapid growth and solving modern problems at massive scale."},
+  {topic:"ent", q:"In the modern technology venture world, what defines a 'Unicorn'?", h:"आधुनिक प्रौद्योगिकी उद्यम की दुनिया में, 'यूनिकॉर्न' क्या है?", opt:["A private startup valued at over one billion dollars","A publicly listed company with over a million users","A venture-backed firm that has achieved profitability","A startup that has completed its Series C funding round"], h_opt:["एक बिलियन डॉलर से अधिक मूल्य का एक निजी स्टार्टअप","एक मिलियन से अधिक उपयोगकर्ताओं वाली सार्वजनिक रूप से सूचीबद्ध कंपनी","एक वेंचर-समर्थित फर्म जिसने लाभप्रदता हासिल की है","एक स्टार्टअप जिसने अपना सीरीज सी फंडिंग राउंड पूरा किया है"], a:"A private startup valued at over one billion dollars", exp:"The term highlights the statistical rarity of reaching such massive early valuations."},
+  {topic:"ent", q:"What does the core product development acronym MVP stand for?", h:"कोर उत्पाद विकास संक्षिप्त नाम MVP का क्या अर्थ है?", opt:["Minimum Viable Product","Maximum Value Proposition","Market Validation Protocol","Modular Version Pipeline"], h_opt:["मिनिमम वायबल प्रोडक्ट","मैक्सिमम वैल्यू प्रपोज़िशन","मार्केट वैलिडेशन प्रोटोकॉल","मॉड्यूलर वर्जन पाइपलाइन"], a:"Minimum Viable Product", exp:"An MVP has just enough features to test the core business idea with early users."},
+  {topic:"ent", q:"If a software startup sells its technology directly to other businesses, what is its business model?", h:"यदि कोई सॉफ्टवेयर स्टार्टअप अपनी तकनीक सीधे अन्य व्यवसायों को बेचता है, तो उसका व्यवसाय मॉडल क्या है?", opt:["Business to Business","Business to Consumer","Direct to Consumer","Business to Government"], h_opt:["बिजनेस टू बिजनेस","बिजनेस टू कंज्यूमर","डायरेक्ट टू कंज्यूमर","बिजनेस टू गवर्नमेंट"], a:"Business to Business", exp:"Enterprise software companies like Salesforce operate on a Business to Business model."},
+  {topic:"ent", q:"What does the term 'Bootstrapping' mean for an early stage startup?", h:"प्रारंभिक चरण के स्टार्टअप के लिए 'बूटस्ट्रैपिंग' शब्द का क्या अर्थ है?", opt:["Funding the business using personal savings and revenue","Raising capital from angel investors in the pre-seed stage","Taking a government grant to develop the initial prototype","Securing a bank loan using the founders' personal assets"], h_opt:["व्यक्तिगत बचत और राजस्व का उपयोग करके व्यवसाय को निधि देना","प्री-सीड चरण में एंजेल निवेशकों से पूंजी जुटाना","प्रारंभिक प्रोटोटाइप विकसित करने के लिए सरकारी अनुदान लेना","संस्थापकों की व्यक्तिगत संपत्ति का उपयोग करके बैंक ऋण प्राप्त करना"], a:"Funding the business using personal savings and revenue", exp:"Bootstrapping avoids giving up early equity to outside venture capital investors."},
+  {topic:"ent", q:"What is the primary function of a startup 'Pitch Deck'?", h:"स्टार्टअप 'पिच डेक' का प्राथमिक कार्य क्या है?", opt:["A presentation used to convince investors to fund a startup","A strategic document outlining the company's five-year growth plan","A detailed product roadmap shared with the engineering team","A market research report commissioned from a consulting firm"], h_opt:["निवेशकों को स्टार्टअप को निधि देने के लिए मनाने के लिए एक प्रस्तुति","कंपनी की पांच वर्षीय विकास योजना की रूपरेखा वाला एक रणनीतिक दस्तावेज़","इंजीनियरिंग टीम के साथ साझा किया गया एक विस्तृत उत्पाद रोडमैप","एक परामर्श फर्म से कमीशन की गई बाजार अनुसंधान रिपोर्ट"], a:"A presentation used to convince investors to fund a startup", exp:"It outlines the problem, solution, market size, team, and financial projections."},
+  {topic:"ent", q:"What is the foundational role of a dedicated startup Co-founder?", h:"एक समर्पित स्टार्टअप सह-संस्थापक की आधारभूत भूमिका क्या है?", opt:["To help build the company operations starting from day one","To provide legal counsel and handle regulatory compliance","To manage investor relations and handle board-level communications","To lead marketing strategy and drive customer acquisition efforts"], h_opt:["पहले दिन से कंपनी के संचालन के निर्माण में मदद करना","कानूनी परामर्श प्रदान करना और नियामक अनुपालन संभालना","निवेशक संबंध प्रबंधित करना और बोर्ड-स्तरीय संचार संभालना","मार्केटिंग रणनीति का नेतृत्व करना और ग्राहक अधिग्रहण प्रयासों को आगे बढ़ाना"], a:"To help build the company operations starting from day one", exp:"Co-founders share the extreme operational risks and responsibilities of launching the venture."},
+  {topic:"ent", q:"What does the business terminology 'Target Market' precisely refer to?", h:"व्यवसाय शब्दावली 'लक्षित बाजार' ठीक से किसको संदर्भित करती है?", opt:["The specific group of customers a product is explicitly aimed at","The total addressable market a company plans to capture eventually","The geographic region where a product is first launched commercially","The demographic segment that generates the highest revenue per user"], h_opt:["ग्राहकों का विशिष्ट समूह जिस पर उत्पाद स्पष्ट रूप से लक्षित है","कुल संबोधन योग्य बाजार जिसे कंपनी अंततः कैप्चर करने की योजना बनाती है","वह भौगोलिक क्षेत्र जहां कोई उत्पाद पहले व्यावसायिक रूप से लॉन्च किया जाता है","वह जनसांख्यिकीय खंड जो प्रति उपयोगकर्ता सर्वाधिक राजस्व उत्पन्न करता है"], a:"The specific group of customers a product is explicitly aimed at", exp:"Defining a clear target market is essential for an efficient marketing strategy."},
+  {topic:"geo", q:"What does the western military alliance acronym NATO stand for?", h:"पश्चिमी सैन्य गठबंधन संक्षिप्त नाम NATO का क्या अर्थ है?", opt:["North Atlantic Treaty Organization","North American Trade Organization","National Allied Tactical Operations","Naval Armed Treaty Order"], h_opt:["नॉर्थ अटलांटिक ट्रीटी ऑर्गनाइजेशन","नॉर्थ अमेरिकन ट्रेड ऑर्गनाइजेशन","नेशनल अलाइड टैक्टिकल ऑपरेशंस","नेवल आर्म्ड ट्रीटी ऑर्डर"], a:"North Atlantic Treaty Organization", exp:"NATO is a collective security alliance formed by western powers after World War II."},
+  {topic:"geo", q:"Which nation held the prestigious presidency of the G20 Summit in 2023?", h:"2023 में G20 शिखर सम्मेलन की प्रतिष्ठित अध्यक्षता किस देश के पास थी?", opt:["India","Indonesia","Brazil","South Africa"], h_opt:["भारत","इंडोनेशिया","ब्राज़ील","दक्षिण अफ्रीका"], a:"India", exp:"India hosted the summit in New Delhi under the diplomatic theme 'Vasudhaiva Kutumbakam'."},
+  {topic:"geo", q:"In January 2026, the United States launched a major military operation resulting in the capture of which South American leader?", h:"जनवरी 2026 में, संयुक्त राज्य अमेरिका ने एक बड़ा सैन्य अभियान शुरू किया जिसके परिणामस्वरूप किस दक्षिण अमेरिकी नेता को पकड़ा गया?", opt:["Nicolás Maduro","Gustavo Petro","Luiz Inácio Lula da Silva","Gabriel Boric"], h_opt:["निकोलस मादुरो","गुस्तावो पेट्रो","लुइज़ इनासियो लूला दा सिल्वा","गेब्रियल बोरिक"], a:"Nicolás Maduro", exp:"On January 3, 2026, U.S. forces conducted an unprecedented operation in Caracas, capturing the Venezuelan President."},
+  {topic:"geo", q:"What official name was given to the historic lunar landing site of India's Chandrayaan-3?", h:"भारत के चंद्रयान-3 के ऐतिहासिक चंद्र लैंडिंग स्थल को क्या आधिकारिक नाम दिया गया?", opt:["Shiv Shakti Point","Vikram Landing Base","Tiranga Lunar Site","Pragyan Station Alpha"], h_opt:["शिव शक्ति पॉइंट","विक्रम लैंडिंग बेस","तिरंगा लूनर साइट","प्रज्ञान स्टेशन अल्फा"], a:"Shiv Shakti Point", exp:"Prime Minister Modi named the historic south pole lunar landing site 'Shiv Shakti'."},
+
+  // ════════ TIER 2: MODERATE (31-70) ════════
+  {topic:"ai", q:"In foundational machine learning, what defines 'Supervised Learning'?", h:"बुनियादी मशीन लर्निंग में, 'सुपरवाइज्ड लर्निंग' को क्या परिभाषित करता है?", opt:["Training on labeled data to accurately map input variables to outputs","Learning patterns from unlabeled data without any human guidance","Optimizing rewards through trial and error in a simulated environment","Generating new data samples from an existing training distribution"], h_opt:["इनपुट को आउटपुट से सटीक रूप से मैप करने के लिए लेबल किए गए डेटा पर प्रशिक्षण","बिना किसी मानव मार्गदर्शन के अनलेबल डेटा से पैटर्न सीखना","सिमुलेटेड वातावरण में परीक्षण और त्रुटि के माध्यम से पुरस्कारों को अनुकूलित करना","एक मौजूदा प्रशिक्षण वितरण से नए डेटा नमूने उत्पन्न करना"], a:"Training on labeled data to accurately map input variables to outputs", exp:"The model learns from structured examples where the correct answers are provided."},
+  {topic:"ai", q:"Which groundbreaking 2017 Google research paper formally introduced the Transformer architecture?", h:"2017 के किस गूगल शोध पत्र ने ट्रांसफार्मर आर्किटेक्चर को औपचारिक रूप से पेश किया?", opt:["Attention Is All You Need","Playing Atari with Deep Reinforcement Learning","ImageNet Classification with Deep CNNs","BERT: Pre-training of Deep Bidirectional Transformers"], h_opt:["अटेंशन इज़ ऑल यू नीड","डीप रीइन्फोर्समेंट लर्निंग से अटारी खेलना","डीप CNN के साथ ImageNet वर्गीकरण","BERT: डीप बाइडायरेक्शनल ट्रांसफार्मर का प्री-ट्रेनिंग"], a:"Attention Is All You Need", exp:"This legendary paper replaced sequential networks with parallel self-attention mechanisms."},
+  {topic:"ai", q:"What does the vital safety acronym RLHF stand for in AI training?", h:"AI प्रशिक्षण में महत्वपूर्ण सुरक्षा संक्षिप्त नाम RLHF का क्या अर्थ है?", opt:["Reinforcement Learning from Human Feedback","Recursive Learning from Historical Features","Regularized Layer-wise Hyperparameter Finetuning","Recurrent Logic Heuristic Framework"], h_opt:["रीइन्फोर्समेंट लर्निंग फ्रॉम ह्यूमन फीडबैक","रिकर्सिव लर्निंग फ्रॉम हिस्टोरिकल फीचर्स","रेगुलराइज्ड लेयर-वाइज़ हाइपरपैरामीटर फाइनट्यूनिंग","रिकरेंट लॉजिक ह्यूरिस्टिक फ्रेमवर्क"], a:"Reinforcement Learning from Human Feedback", exp:"RLHF aligns language models like ChatGPT to human preferences and safety guidelines."},
+  {topic:"ai", q:"What defines the dangerous cybersecurity vulnerability known as 'Prompt Injection'?", h:"'प्रॉम्प्ट इंजेक्शन' के रूप में जानी जाने वाली खतरनाक साइबर सुरक्षा भेद्यता को क्या परिभाषित करता है?", opt:["An attack where malicious text overrides the core developer instructions","A brute-force technique that repeatedly guesses an AI system's API key","A method of extracting the private training data from a deployed model","A vulnerability where attackers flood an AI server with excessive requests"], h_opt:["एक हमला जहां दुर्भावनापूर्ण पाठ मुख्य डेवलपर निर्देशों को ओवरराइड करता है","एक ब्रूट-फोर्स तकनीक जो बार-बार AI सिस्टम की API कुंजी का अनुमान लगाती है","एक तैनात मॉडल से निजी प्रशिक्षण डेटा निकालने की एक विधि","एक भेद्यता जहां हमलावर AI सर्वर पर अत्यधिक अनुरोधों की बाढ़ लाते हैं"], a:"An attack where malicious text overrides the core developer instructions", exp:"It forces the AI to ignore its safety constraints by tricking it via hidden user inputs."},
+  {topic:"ai", q:"Which major technology company champions the open-weight 'Llama' series of AI models?", h:"कौन सी प्रमुख प्रौद्योगिकी कंपनी 'लामा' AI मॉडल श्रृंखला का समर्थन करती है?", opt:["Meta Platforms","Google DeepMind","Mistral AI","Stability AI"], h_opt:["मेटा प्लेटफॉर्म्स","गूगल डीपमाइंड","मिस्ट्रल AI","स्टेबिलिटी AI"], a:"Meta Platforms", exp:"Meta open-sourced the weights for Llama, heavily impacting the global open AI ecosystem."},
+  {topic:"ai", q:"When engineers state that GPT-4 has over a trillion 'parameters', what are parameters?", h:"जब इंजीनियर कहते हैं कि GPT-4 में एक ट्रिलियन 'पैरामीटर' हैं, तो वे क्या हैं?", opt:["The internal neural weights and computational biases learned during training","The total number of training examples used during the pre-training phase","The specific layers of hardcoded logic defined by the model architecture","The number of attention heads across all transformer layers in the network"], h_opt:["प्रशिक्षण के दौरान सीखे गए आंतरिक तंत्रिका भार और कम्प्यूटेशनल पूर्वाग्रह","प्री-ट्रेनिंग चरण के दौरान उपयोग किए गए प्रशिक्षण उदाहरणों की कुल संख्या","मॉडल आर्किटेक्चर द्वारा परिभाषित हार्डकोडेड लॉजिक की विशिष्ट परतें","नेटवर्क की सभी ट्रांसफार्मर परतों में अटेंशन हेड्स की संख्या"], a:"The internal neural weights and computational biases learned during training", exp:"Parameters form the 'knowledge' structure of the massive artificial neural network."},
+  {topic:"ai", q:"In the context of Large Language Models, what exactly is a 'Token'?", h:"बड़े भाषा मॉडल के संदर्भ में, 'टोकन' वास्तव में क्या है?", opt:["A piece of a word or whole word that the AI mathematically processes","The smallest unit of meaning stored in a neural network embedding","A unique identifier assigned to each API request for tracking purposes","A segment of training data used in a single forward pass of the model"], h_opt:["किसी शब्द का एक हिस्सा या पूरा शब्द जिसे AI गणितीय रूप से संसाधित करता है","न्यूरल नेटवर्क एम्बेडिंग में संग्रहीत अर्थ की सबसे छोटी इकाई","ट्रैकिंग उद्देश्यों के लिए प्रत्येक API अनुरोध को सौंपा गया एक अद्वितीय पहचानकर्ता","मॉडल के एकल फॉरवर्ड पास में उपयोग किए गए प्रशिक्षण डेटा का एक खंड"], a:"A piece of a word or whole word that the AI mathematically processes", exp:"LLMs read text in chunks called tokens, roughly equal to three-quarters of a standard word."},
+  {topic:"ai", q:"What does the universal software development acronym API stand for?", h:"यूनिवर्सल सॉफ्टवेयर विकास संक्षिप्त नाम API का क्या अर्थ है?", opt:["Application Programming Interface","Automated Process Integration","Advanced Protocol Interconnect","Adaptive Program Interchange"], h_opt:["एप्लिकेशन प्रोग्रामिंग इंटरफेस","ऑटोमेटेड प्रोसेस इंटीग्रेशन","एडवांस्ड प्रोटोकॉल इंटरकनेक्ट","एडेप्टिव प्रोग्राम इंटरचेंज"], a:"Application Programming Interface", exp:"APIs allow different software systems (like a web app and OpenAI) to easily communicate."},
+  {topic:"ai", q:"What defines a Generative Adversarial Network architecture?", h:"जेनरेटिव एडवरसेरियल नेटवर्क आर्किटेक्चर को क्या परिभाषित करता है?", opt:["An architecture where two neural networks compete to create realistic data","A single deep neural network trained to classify and label images precisely","A supervised model that learns exclusively from human-annotated feedback data","A recurrent network architecture used mainly for sequential time-series prediction"], h_opt:["एक आर्किटेक्चर जहां यथार्थवादी डेटा बनाने के लिए दो नेटवर्क प्रतिस्पर्धा करते हैं","एक एकल डीप न्यूरल नेटवर्क जो छवियों को सटीक रूप से वर्गीकृत और लेबल करने के लिए प्रशिक्षित है","एक सुपरवाइज्ड मॉडल जो विशेष रूप से मानव-एनोटेट फीडबैक डेटा से सीखता है","एक रिकरेंट नेटवर्क आर्किटेक्चर जो मुख्य रूप से अनुक्रमिक टाइम-सीरीज़ पूर्वानुमान के लिए उपयोग किया जाता है"], a:"An architecture where two neural networks compete to create realistic data", exp:"GANs consist of a generator creating fake data and a discriminator trying to spot the fakes."},
+  {topic:"ai", q:"What defines the modern digital phenomenon known as a 'Deepfake'?", h:"आधुनिक डिजिटल घटना जिसे 'डीपफेक' के रूप में जाना जाता है, उसे क्या परिभाषित करता है?", opt:["Highly convincing synthetic media showing individuals doing or saying false events","AI-generated text that mimics a specific author's writing style very closely","A technique for compressing large video files using neural network codecs","A method of encrypting sensitive communications using machine learning models"], h_opt:["अत्यधिक आश्वस्त करने वाला सिंथेटिक मीडिया जो व्यक्तियों को झूठी घटनाएं करते या कहते हुए दिखाता है","AI-जनित पाठ जो किसी विशिष्ट लेखक की लेखन शैली की बहुत बारीकी से नकल करता है","न्यूरल नेटवर्क कोडेक्स का उपयोग करके बड़ी वीडियो फ़ाइलों को संपीड़ित करने की एक तकनीक","मशीन लर्निंग मॉडल का उपयोग करके संवेदनशील संचार को एन्क्रिप्ट करने की एक विधि"], a:"Highly convincing synthetic media showing individuals doing or saying false events", exp:"Deepfakes pose massive risks for political misinformation, identity theft, and corporate fraud."},
+  {topic:"ai", q:"What does the concept of 'AGI' represent in artificial intelligence development?", h:"आर्टिफिशियल इंटेलिजेंस विकास में 'AGI' की अवधारणा क्या दर्शाती है?", opt:["Artificial General Intelligence","Augmented Gradient Inference","Adaptive Graph Integration","Automated Generation Interface"], h_opt:["आर्टिफिशियल जनरल इंटेलिजेंस","ऑगमेंटेड ग्रेडिएंट इन्फेरेंस","एडेप्टिव ग्राफ इंटीग्रेशन","ऑटोमेटेड जेनरेशन इंटरफेस"], a:"Artificial General Intelligence", exp:"AGI is the ultimate theoretical goal of labs creating AI matching human cognitive abilities."},
+  {topic:"ai", q:"Which Indian-American CEO leads Google's parent company, Alphabet?", h:"Google की मूल कंपनी Alphabet के CEO कौन भारतीय-अमेरिकी हैं?", opt:["Sundar Pichai — CEO of Google and Alphabet","Satya Nadella — CEO of Microsoft Corporation","Arvind Krishna — CEO of IBM Corporation","Shantanu Narayen — CEO of Adobe Systems"], h_opt:["सुंदर पिचाई — Google और Alphabet के CEO","सत्या नडेला — माइक्रोसॉफ्ट के CEO","अरविंद कृष्ण — IBM के CEO","शांतनु नारायण — Adobe Systems के CEO"], a:"Sundar Pichai — CEO of Google and Alphabet", exp:"Sundar Pichai from Tamil Nadu became Google CEO in 2015 and Alphabet CEO in 2019. Satya Nadella leads Microsoft, Arvind Krishna leads IBM — all are prominent Indian-origin global tech leaders."},
+  {topic:"ent", q:"What does the core metric 'CAC' stand for in business analytics?", h:"व्यावसायिक विश्लेषण में 'CAC' का क्या अर्थ है?", opt:["Customer Acquisition Cost","Conversion Attribution Channel","Cumulative Average Clickthrough","Cohort Attrition Coefficient"], h_opt:["कस्टमर एक्विजिशन कॉस्ट","कन्वर्जन एट्रिब्यूशन चैनल","क्यूमुलेटिव एवरेज क्लिकथ्रू","कोहोर्ट एट्रिशन कोएफिशिएंट"], a:"Customer Acquisition Cost", exp:"The total sales and marketing spend required to officially win one completely new customer."},
+  {topic:"ent", q:"What does the critical business metric 'Lifetime Value' calculate?", h:"महत्वपूर्ण व्यवसाय मीट्रिक 'लाइफटाइम वैल्यू' क्या गणना करता है?", opt:["The total revenue expected from a single customer over their relationship duration","The average revenue generated per user in a single billing period","The projected growth rate of a company's recurring revenue over a fiscal year","The total value of contracts signed with enterprise clients in a given quarter"], h_opt:["अपने संबंधों की अवधि में एकल ग्राहक से अपेक्षित कुल राजस्व","एक बिलिंग अवधि में प्रति उपयोगकर्ता उत्पन्न औसत राजस्व","एक वित्तीय वर्ष में कंपनी के आवर्ती राजस्व की अनुमानित विकास दर","किसी दी गई तिमाही में उद्यम ग्राहकों के साथ हस्ताक्षरित अनुबंधों का कुल मूल्य"], a:"The total revenue expected from a single customer over their relationship duration", exp:"A fundamentally healthy business model requires LTV to be significantly higher than CAC."},
+  {topic:"ent", q:"What specifically does a startup's operational 'Burn Rate' measure?", h:"विशेष रूप से स्टार्टअप की परिचालन 'बर्न रेट' क्या मापती है?", opt:["How quickly the company spends its cash reserves each calendar month","The rate at which new annual recurring revenue is added each month","The pace at which the company grows its headcount during a scaling phase","The speed at which the engineering team ships new product features weekly"], h_opt:["प्रत्येक कैलेंडर माह में कंपनी कितनी जल्दी अपने नकद भंडार को खर्च करती है","प्रत्येक माह जोड़े जाने वाले नए वार्षिक आवर्ती राजस्व की दर","स्केलिंग चरण के दौरान कंपनी जिस गति से अपनी हेडकाउंट बढ़ाती है","इंजीनियरिंग टीम साप्ताहिक रूप से नई उत्पाद सुविधाएं किस गति से शिप करती है"], a:"How quickly the company spends its cash reserves each calendar month", exp:"Knowing the burn rate is absolutely essential to calculate how long the company can survive."},
+  {topic:"ent", q:"What does the concept of a startup's financial 'Runway' refer to?", h:"स्टार्टअप के वित्तीय 'रनवे' की अवधारणा क्या संदर्भित करती है?", opt:["The time a company has before it runs out of cash at its current burn rate","The period between closing a funding round and deploying the capital fully","The timeline a startup sets for reaching its next major revenue milestone","The duration of a product beta test before the official public launch date"], h_opt:["वर्तमान बर्न रेट पर कंपनी के पास नकद खत्म होने से पहले का समय","फंडिंग राउंड बंद करने और पूंजी को पूरी तरह से तैनात करने के बीच की अवधि","वह समयरेखा जो एक स्टार्टअप अपने अगले प्रमुख राजस्व मील के पत्थर तक पहुंचने के लिए निर्धारित करता है","आधिकारिक सार्वजनिक लॉन्च तिथि से पहले उत्पाद बीटा परीक्षण की अवधि"], a:"The time a company has before it runs out of cash at its current burn rate", exp:"Calculated strictly as Total Cash Balance divided by the Monthly Operational Burn Rate."},
+  {topic:"ent", q:"What generally comes first in standard sequential startup funding rounds?", h:"मानक अनुक्रमिक स्टार्टअप फंडिंग राउंड में आम तौर पर सबसे पहले क्या आता है?", opt:["Seed Stage Funding","Pre-Seed Angel Round","Bridge Financing Round","Friends and Family Round"], h_opt:["सीड स्टेज फंडिंग","प्री-सीड एंजेल राउंड","ब्रिज फाइनेंसिंग राउंड","फ्रेंड्स एंड फैमिली राउंड"], a:"Seed Stage Funding", exp:"Seed capital helps fundamentally plant the idea, followed by Series A for early operational scaling."},
+  {topic:"ent", q:"What does it mean when a startup strategically 'Pivots'?", h:"जब कोई स्टार्टअप रणनीतिक रूप से 'पिवोट्स' करता है तो इसका क्या मतलब है?", opt:["It fundamentally shifts its product strategy based directly on early market feedback","It accelerates its existing plan by doubling down on the current product offering","It merges with a competitor to consolidate market share and reduce overhead costs","It spins out a new product line while continuing to scale the original business"], h_opt:["यह शुरुआती बाजार की प्रतिक्रिया के आधार पर अपनी उत्पाद रणनीति को मौलिक रूप से बदल देता है","यह वर्तमान उत्पाद पेशकश पर दोगुना करके अपनी मौजूदा योजना को तेज करता है","यह बाजार हिस्सेदारी को मजबूत करने और ओवरहेड लागत को कम करने के लिए एक प्रतियोगी के साथ विलय करता है","यह मूल व्यवसाय को स्केल करते हुए एक नई उत्पाद लाइन को स्पिन आउट करता है"], a:"It fundamentally shifts its product strategy based directly on early market feedback", exp:"Famous successful pivots include Slack (started as a game) and Instagram (check-in app)."},
+  {topic:"ent", q:"What is the main functional difference between an Incubator and an Accelerator?", h:"इन्क्यूबेटर और एक्सेलेरेटर के बीच मुख्य कार्यात्मक अंतर क्या है?", opt:["Incubators help form early ideas while Accelerators speed up existing startups","Incubators operate short cohort programs while Accelerators offer long-term residencies","Incubators focus on B2C consumer products while Accelerators focus on B2B enterprise","Incubators are equity-free while Accelerators always take a significant equity stake"], h_opt:["इन्क्यूबेटर शुरुआती विचार बनाने में मदद करते हैं जबकि एक्सेलेरेटर मौजूदा स्टार्टअप को तेज करते हैं","इन्क्यूबेटर छोटे कोहोर्ट प्रोग्राम संचालित करते हैं जबकि एक्सेलेरेटर दीर्घकालिक रेसिडेंसी प्रदान करते हैं","इन्क्यूबेटर B2C उपभोक्ता उत्पादों पर ध्यान केंद्रित करते हैं जबकि एक्सेलेरेटर B2B उद्यम पर ध्यान केंद्रित करते हैं","इन्क्यूबेटर इक्विटी-मुक्त हैं जबकि एक्सेलेरेटर हमेशा एक महत्वपूर्ण इक्विटी हिस्सेदारी लेते हैं"], a:"Incubators help form early ideas while Accelerators speed up existing startups", exp:"Accelerators (like Y-Combinator) operate on intense, highly competitive short-term cohort models."},
+  {topic:"ent", q:"What exactly is the mechanical process of 'Equity Dilution'?", h:"'इक्विटी डाइल्यूशन' की यांत्रिक प्रक्रिया वास्तव में क्या है?", opt:["When existing ownership percentage decreases because new corporate shares are issued","When a company buys back shares from investors at a pre-negotiated valuation","When the board votes to redistribute equity equally among all current shareholders","When convertible notes automatically convert to preferred shares at a funding round"], h_opt:["जब नए कॉर्पोरेट शेयर जारी होने के कारण मौजूदा स्वामित्व प्रतिशत घट जाता है","जब कोई कंपनी पूर्व-बातचीत मूल्यांकन पर निवेशकों से शेयर वापस खरीदती है","जब बोर्ड सभी वर्तमान शेयरधारकों के बीच इक्विटी को समान रूप से पुनर्वितरित करने के लिए मतदान करता है","जब परिवर्तनीय नोट स्वचालित रूप से फंडिंग राउंड में पसंदीदा शेयरों में परिवर्तित होते हैं"], a:"When existing ownership percentage decreases because new corporate shares are issued", exp:"It happens entirely naturally during every funding round as VCs buy newly created shares."},
+  {topic:"ent", q:"What defines the financial instrument known as 'Venture Debt'?", h:"'वेंचर डेब्ट' के रूप में जाने जाने वाले वित्तीय साधन को क्या परिभाषित करता है?", opt:["A startup loan that avoids the severe founder equity dilution of standard venture capital","A convertible note that transforms into equity at the next priced funding round","A revenue-based financing agreement tied to a percentage of monthly recurring revenue","A government-backed grant specifically structured for deep tech research startups"], h_opt:["एक स्टार्टअप ऋण जो मानक उद्यम पूंजी के गंभीर संस्थापक इक्विटी डाइल्यूशन से बचाता है","एक परिवर्तनीय नोट जो अगले मूल्य निर्धारण फंडिंग राउंड में इक्विटी में बदल जाता है","एक राजस्व-आधारित वित्तपोषण समझौता जो मासिक आवर्ती राजस्व के एक प्रतिशत से जुड़ा है","डीप टेक रिसर्च स्टार्टअप के लिए विशेष रूप से संरचित सरकार समर्थित अनुदान"], a:"A startup loan that avoids the severe founder equity dilution of standard venture capital", exp:"It is very often strategically used to extend operational runway between equity fundraising rounds."},
+  {topic:"ent", q:"What explicit information does a corporate 'Cap Table' show?", h:"एक कॉर्पोरेट 'कैप टेबल' क्या स्पष्ट जानकारी दिखाता है?", opt:["The precise mathematical breakdown of who owns what percentage of company equity","A legal document recording all outstanding stock options and their vesting schedules","A financial model projecting the company's post-money valuation after each funding round","A governance charter outlining voting rights and board seat allocations for investors"], h_opt:["कंपनी की इक्विटी का कितना प्रतिशत किसके पास है, इसका सटीक गणितीय विवरण","सभी बकाया स्टॉक विकल्पों और उनके वेस्टिंग शेड्यूल को रिकॉर्ड करने वाला एक कानूनी दस्तावेज़","एक वित्तीय मॉडल जो प्रत्येक फंडिंग राउंड के बाद कंपनी के पोस्ट-मनी मूल्यांकन का अनुमान लगाता है","एक गवर्नेंस चार्टर जो निवेशकों के लिए मतदान अधिकार और बोर्ड सीट आवंटन की रूपरेखा देता है"], a:"The precise mathematical breakdown of who owns what percentage of company equity", exp:"Capitalization tables are critical legal ownership documents formally updated every funding round."},
+  {topic:"ent", q:"What does the SaaS metric 'Churn Rate' mathematically represent?", h:"SaaS मीट्रिक 'चर्न रेट' गणितीय रूप से क्या दर्शाता है?", opt:["The percentage of customers who cancel their subscriptions over a given time period","The rate at which new users activate their accounts after initial sign-up","The proportion of paying users who upgrade to a higher subscription tier monthly","The ratio of support tickets resolved to total tickets opened in a given period"], h_opt:["दिए गए समय अवधि में अपनी सदस्यता रद्द करने वाले ग्राहकों का प्रतिशत","प्रारंभिक साइन-अप के बाद नए उपयोगकर्ताओं के अपने खाते सक्रिय करने की दर","भुगतान करने वाले उपयोगकर्ताओं का अनुपात जो मासिक रूप से उच्च सदस्यता स्तर पर अपग्रेड करते हैं","दिए गए अवधि में हल किए गए समर्थन टिकटों का कुल खोले गए टिकटों से अनुपात"], a:"The percentage of customers who cancel their subscriptions over a given time period", exp:"An excessively high churn rate heavily indicates poor product-market fit or customer dissatisfaction."},
+  {topic:"ent", q:"What is the foundational strategy behind 'Product-Led Growth'?", h:"'उत्पाद-नेतृत्व विकास' के पीछे मूलभूत रणनीति क्या है?", opt:["Using the product itself as the primary mechanical driver of autonomous user acquisition","Building a large outbound sales team to proactively reach enterprise customers","Investing heavily in content marketing and SEO to drive organic top-of-funnel growth","Running performance ad campaigns across paid channels to accelerate user signups"], h_opt:["स्वायत्त उपयोगकर्ता अधिग्रहण के प्राथमिक यांत्रिक चालक के रूप में उत्पाद का ही उपयोग करना","उद्यम ग्राहकों तक सक्रिय रूप से पहुंचने के लिए एक बड़ी आउटबाउंड बिक्री टीम बनाना","ऑर्गेनिक टॉप-ऑफ-फनल ग्रोथ को बढ़ावा देने के लिए कंटेंट मार्केटिंग और SEO में भारी निवेश करना","उपयोगकर्ता साइनअप को तेज करने के लिए भुगतान किए गए चैनलों पर प्रदर्शन विज्ञापन अभियान चलाना"], a:"Using the product itself as the primary mechanical driver of autonomous user acquisition", exp:"Figma, Notion, and Zoom grew immensely through PLG by offering highly valuable free-tier utility."},
+ {
+   topic: "geo",
+   q: "Which international treaty specifically protects the rights and sets the standards for the treatment of prisoners of war?",
+   h: "कौन सी अंतर्राष्ट्रीय संधि विशेष रूप से युद्धबंदियों (POWs) के अधिकारों की रक्षा करती है और उनके उपचार के मानक निर्धारित करती है?",
+   opt: [
+     "Geneva Convention",
+     "Hague Convention",
+     "Treaty of Versailles",
+     "Kyoto Protocol"
+   ],
+   h_opt: [
+     "जिनेवा कन्वेंशन",
+     "हेग कन्वेंशन",
+     "वर्साय की संधि",
+     "क्योटो प्रोटोकॉल"
+   ],
+   a: "Geneva Convention",
+   exp: "The Third Geneva Convention, adopted in 1949, is the primary international treaty that protects the rights of prisoners of war and ensures their humane treatment."
+ },
+  {topic:"geo", q:"The 'Malacca Dilemma' highlights China's strategic vulnerability regarding what?", h:"'मलक्का दुविधा' किस संबंध में चीन की रणनीतिक भेद्यता को उजागर करती है?", opt:["Its massive overproduction and aggressive global exporting of cheap solar panels","Its heavy reliance on the Strait of Malacca for essential Middle Eastern energy imports","Its critical lack of modern deep-water submarine bases in the South China Sea","Its escalating and highly volatile border disputes with the Russian Federation"], h_opt:["सस्ते सौर पैनलों का बड़े पैमाने पर अतिउत्पादन और आक्रामक वैश्विक निर्यात","आवश्यक मध्य पूर्वी ऊर्जा आयात के लिए मलक्का जलडमरूमध्य पर भारी निर्भरता","दक्षिण चीन सागर में आधुनिक गहरे पानी के पनडुब्बी ठिकानों की गंभीर कमी","रूसी संघ के साथ इसके बढ़ते और अत्यधिक अस्थिर सीमा विवाद"], a:"Its heavy reliance on the Strait of Malacca for essential Middle Eastern energy imports", exp:"Nearly 80% of China's critical oil imports pass through this highly vulnerable narrow maritime chokepoint."},
+  {topic:"geo", q:"What is the core objective of China's 'Belt and Road Initiative'?", h:"चीन की 'बेल्ट एंड रोड इनिशिएटिव' का मुख्य उद्देश्य क्या है?", opt:["A massive global infrastructure development strategy expanding Chinese geopolitical influence","A multilateral trade liberalization framework connecting emerging market economies","A foreign aid program exclusively funding renewable energy projects in Africa and Asia","A regional economic integration bloc modeled on the European Union's single market"], h_opt:["चीनी भू-राजनीतिक प्रभाव का विस्तार करने वाली एक विशाल वैश्विक बुनियादी ढांचा विकास रणनीति","उभरती बाजार अर्थव्यवस्थाओं को जोड़ने वाला एक बहुपक्षीय व्यापार उदारीकरण ढांचा","विशेष रूप से अफ्रीका और एशिया में नवीकरणीय ऊर्जा परियोजनाओं को वित्त पोषित करने वाला एक विदेशी सहायता कार्यक्रम","यूरोपीय संघ के एकल बाजार पर आधारित एक क्षेत्रीय आर्थिक एकीकरण ब्लॉक"], a:"A massive global infrastructure development strategy expanding Chinese geopolitical influence", exp:"It strategically builds ports, railways, and massive highways across Asia, Africa, and Europe."},
+  {topic:"geo", q:"Which four powerful nations actively make up the QUAD security dialogue?", h:"कौन से चार शक्तिशाली राष्ट्र सक्रिय रूप से QUAD सुरक्षा संवाद बनाते हैं?", opt:["India, United States, Japan, and Australia","United States, United Kingdom, France, and Germany","India, Australia, Indonesia, and South Korea","Japan, South Korea, Taiwan, and the Philippines"], h_opt:["भारत, संयुक्त राज्य अमेरिका, जापान और ऑस्ट्रेलिया","संयुक्त राज्य अमेरिका, यूनाइटेड किंगडम, फ्रांस और जर्मनी","भारत, ऑस्ट्रेलिया, इंडोनेशिया और दक्षिण कोरिया","जापान, दक्षिण कोरिया, ताइवान और फिलीपींस"], a:"India, United States, Japan, and Australia", exp:"It actively focuses on maintaining a free, open, and secure Indo-Pacific maritime region."},
+  {topic:"geo", q:"The 'Thucydides Trap' describes the high danger of structural war when:", h:"'थ्यूसीडाइड्स ट्रैप' संरचनात्मक युद्ध के उच्च खतरे का वर्णन करता है जब:", opt:["A rising power threatens to displace an existing dominant power, raising the risk of war","Two states compete for influence over the same neutral third-party nation simultaneously","A global hegemon attempts to contain a rising challenger through economic sanctions","An alliance system drags multiple great powers into a regional conflict involuntarily"], h_opt:["एक उभरती शक्ति मौजूदा प्रमुख शक्ति को विस्थापित करने की धमकी देती है, जिससे युद्ध का खतरा बढ़ता है","दो राज्य एक साथ एक ही तटस्थ तृतीय-पक्ष राष्ट्र पर प्रभाव के लिए प्रतिस्पर्धा करते हैं","एक वैश्विक आधिपत्य आर्थिक प्रतिबंधों के माध्यम से एक उभरते चुनौती देने वाले को रोकने का प्रयास करता है","एक गठबंधन प्रणाली कई महान शक्तियों को अनायास ही एक क्षेत्रीय संघर्ष में खींच लेती है"], a:"A rising power threatens to displace an existing dominant power, raising the risk of war", exp:"Often applied to the current extreme structural tension between a rapidly rising China and the dominant USA."},
+  {topic:"geo", q:"In modern geopolitics, what does the term 'Global South' primarily refer to?", h:"आधुनिक भू-राजनीति में, 'ग्लोबल साउथ' शब्द मुख्य रूप से किसे संदर्भित करता है?", opt:["Only sovereign countries physically located on the continent of Antarctica","Developing and emerging nations located predominantly in Africa, Latin America, and Asia","Highly developed western countries explicitly aligned with the NATO military alliance","The culturally distinct southern geographical states of the United States of America"], h_opt:["केवल अंटार्कटिका महाद्वीप पर भौतिक रूप से स्थित संप्रभु देश","मुख्य रूप से अफ्रीका, लैटिन अमेरिका और एशिया में स्थित विकासशील और उभरते राष्ट्र","अत्यधिक विकसित पश्चिमी देश स्पष्ट रूप से नाटो सैन्य गठबंधन के साथ जुड़े हुए हैं","संयुक्त राज्य अमेरिका के सांस्कृतिक रूप से विशिष्ट दक्षिणी भौगोलिक राज्य"], a:"Developing and emerging nations located predominantly in Africa, Latin America, and Asia", exp:"India actively positions itself diplomatically as the primary voice and leader of the Global South."},
+  {topic:"geo", q:"What defines the geopolitical concept known as 'Soft Power'?", h:"'सॉफ्ट पावर' के रूप में जानी जाने वाली भू-राजनीतिक अवधारणा को क्या परिभाषित करता है?", opt:["A country's ability to attract and co-opt others through culture rather than military coercion","The use of economic incentives and trade agreements to build bilateral political alignment","A strategy of establishing military bases abroad to project power across distant regions","The deployment of special forces and intelligence assets to influence foreign governments covertly"], h_opt:["सैन्य दबाव के बजाय संस्कृति के माध्यम से दूसरों को आकर्षित करने और सह-चुनने की देश की क्षमता","द्विपक्षीय राजनीतिक संरेखण बनाने के लिए आर्थिक प्रोत्साहन और व्यापार समझौतों का उपयोग","दूरस्थ क्षेत्रों में शक्ति प्रक्षेपित करने के लिए विदेश में सैन्य अड्डे स्थापित करने की एक रणनीति","विदेशी सरकारों को प्रभावित करने के लिए विशेष बलों और खुफिया संपत्तियों की तैनाती"], a:"A country's ability to attract and co-opt others through culture rather than military coercion", exp:"Classic successful examples include American Hollywood, Indian Yoga, and South Korean K-Pop."},
+  {topic:"geo", q:"Which nations hold absolute permanent veto power in the UN Security Council?", h:"UN सुरक्षा परिषद में पूर्ण स्थायी वीटो शक्ति किन देशों के पास है?", opt:["United States, United Kingdom, Republic of France, Russian Federation, and China","Republic of India, Japan, Germany, Federative Republic of Brazil, and South Africa","United States, State of Israel, United Kingdom, Canada, and the Commonwealth of Australia","People's Republic of China, Russia, India, Islamic Republic of Iran, and Pakistan"], h_opt:["संयुक्त राज्य अमेरिका, यूनाइटेड किंगडम, फ्रांस गणराज्य, रूसी संघ और चीन","भारत गणराज्य, जापान, जर्मनी, ब्राज़ील संघीय गणराज्य और दक्षिण अफ्रीका","संयुक्त राज्य अमेरिका, इज़राइल राज्य, यूनाइटेड किंगडम, कनाडा और ऑस्ट्रेलिया","पीपुल्स रिपब्लिक ऑफ चाइना, रूस, भारत, ईरान और पाकिस्तान"], a:"United States, United Kingdom, Republic of France, Russian Federation, and China", exp:"These five victorious nations of WWII have the absolute power to unilaterally veto any substantive resolution."},
+  {topic:"geo", q:"Which nation hosted the critical COP28 global climate summit?", h:"किस देश ने महत्वपूर्ण COP28 वैश्विक जलवायु शिखर सम्मेलन की मेज़बानी की?", opt:["The Republic of France","The Arab Republic of Egypt","The United Arab Emirates","The United Kingdom of Great Britain"], h_opt:["फ्रांस गणराज्य","मिस्र अरब गणराज्य","संयुक्त अरब अमीरात","ग्रेट ब्रिटेन का यूनाइटेड किंगडम"], a:"The United Arab Emirates", exp:"It was controversially held in Dubai in late 2023, resulting in a pledge to transition away from fossil fuels."},
+  {topic:"geo", q:"What is the global regulatory significance of the EU AI Act?", h:"EU AI अधिनियम का वैश्विक नियामक महत्व क्या है?", opt:["It is the first comprehensive legal framework globally regulating AI based on distinct risk levels","It establishes a voluntary certification scheme for AI systems used in non-critical applications","It creates a single EU agency responsible for approving all commercial AI products before market release","It harmonizes existing national AI guidelines into a non-binding code of practice for member states"], h_opt:["यह दुनिया का पहला व्यापक कानूनी ढांचा है जो विशिष्ट जोखिम स्तरों के आधार पर AI को नियंत्रित करता है","यह गैर-महत्वपूर्ण अनुप्रयोगों में उपयोग की जाने वाली AI प्रणालियों के लिए एक स्वैच्छिक प्रमाणन योजना स्थापित करता है","यह बाजार में रिलीज से पहले सभी वाणिज्यिक AI उत्पादों को मंजूरी देने के लिए जिम्मेदार एक एकल EU एजेंसी बनाता है","यह मौजूदा राष्ट्रीय AI दिशानिर्देशों को सदस्य राज्यों के लिए एक गैर-बाध्यकारी आचार संहिता में सामंजस्य बिठाता है"], a:"It is the first comprehensive legal framework globally regulating AI based on distinct risk levels", exp:"Officially passed in 2024, it strictly bans unacceptable high-risk AI applications like social credit scoring."},
+  {topic:"geo", q:"Why is the island of Taiwan geopolitically critical to the modern global economy?", h:"ताइवान द्वीप आधुनिक वैश्विक अर्थव्यवस्था के लिए भू-राजनीतिक रूप से क्यों महत्वपूर्ण है?", opt:["It manufactures the vast majority of the world's most advanced semiconductor microchips","It controls the key shipping lanes linking the South China Sea to the Pacific Ocean","It holds the largest proven reserves of rare earth minerals critical for electronics production","It hosts the most significant US forward military basing infrastructure in the Western Pacific"], h_opt:["यह दुनिया के अधिकांश सबसे उन्नत सेमीकंडक्टर माइक्रोचिप्स का निर्माण करता है","यह दक्षिण चीन सागर को प्रशांत महासागर से जोड़ने वाले प्रमुख शिपिंग मार्गों को नियंत्रित करता है","इसके पास इलेक्ट्रॉनिक्स उत्पादन के लिए महत्वपूर्ण दुर्लभ पृथ्वी खनिजों के सबसे बड़े सिद्ध भंडार हैं","यह पश्चिमी प्रशांत क्षेत्र में सबसे महत्वपूर्ण US अग्रिम सैन्य बेसिंग बुनियादी ढांचे की मेजबानी करता है"], a:"It manufactures the vast majority of the world's most advanced semiconductor microchips", exp:"TSMC creates advanced logic chips for Apple, NVIDIA, and the US military, making Taiwan irreplaceable."},
+  {topic:"geo", q:"Which militant group's aggressive attacks heavily disrupted global shipping in the Red Sea from late 2023?", h:"2023 के अंत से किस आतंकवादी समूह के आक्रामक हमलों ने लाल सागर में वैश्विक शिपिंग को भारी बाधित किया?", opt:["Somali Maritime Pirates","Al-Qaeda Terrorist Network","Houthi Movement in Yemen","Boko Haram Insurgency Force"], h_opt:["सोमाली समुद्री डाकू","अल-कायदा आतंकवादी नेटवर्क","यमन में हूती आंदोलन","बोको हराम विद्रोही बल"], a:"Houthi Movement in Yemen", exp:"They continuously attacked commercial ships in response to the Israel-Hamas war, forcing route changes."},
+  {topic:"geo", q:"What is the SWIFT international banking system?", h:"SWIFT अंतर्राष्ट्रीय बैंकिंग प्रणाली क्या है?", opt:["A global messaging network used by banks to securely transmit international financial instructions","An international clearinghouse that settles cross-border transactions between central banks","A blockchain-based payment protocol developed by the Bank for International Settlements","A multilateral agreement governing the exchange rates used in international wire transfers"], h_opt:["अंतर्राष्ट्रीय वित्तीय निर्देशों को सुरक्षित रूप से प्रसारित करने के लिए बैंकों द्वारा उपयोग किया जाने वाला एक वैश्विक मैसेजिंग नेटवर्क","एक अंतर्राष्ट्रीय क्लियरिंगहाउस जो केंद्रीय बैंकों के बीच सीमा-पार लेनदेन का निपटान करता है","बैंक फॉर इंटरनेशनल सेटलमेंट्स द्वारा विकसित एक ब्लॉकचेन-आधारित भुगतान प्रोटोकॉल","एक बहुपक्षीय समझौता जो अंतर्राष्ट्रीय वायर ट्रांसफर में उपयोग की जाने वाली विनिमय दरों को नियंत्रित करता है"], a:"A global messaging network used by banks to securely transmit international financial instructions", exp:"Russia was aggressively banned from utilizing SWIFT in 2022 as a massive coordinated geopolitical sanction."},
+  {topic:"geo", q:"What exactly is the 'Five Eyes' intelligence alliance?", h:"'फाइव आइज़' खुफिया गठबंधन वास्तव में क्या है?", opt:["An intelligence sharing alliance between the US, UK, Canada, Australia, and New Zealand","A multilateral cybersecurity framework for coordinating responses to state-sponsored attacks","A classified signals intelligence program operated jointly by NATO's founding member states","A treaty-based arrangement for sharing classified satellite imagery between allied militaries"], h_opt:["US, UK, कनाडा, ऑस्ट्रेलिया और न्यूज़ीलैंड के बीच एक खुफिया साझाकरण गठबंधन","राज्य-प्रायोजित हमलों के प्रति प्रतिक्रियाओं के समन्वय के लिए एक बहुपक्षीय साइबर सुरक्षा ढांचा","NATO के संस्थापक सदस्य राज्यों द्वारा संयुक्त रूप से संचालित एक वर्गीकृत संकेत खुफिया कार्यक्रम","सहयोगी सैन्य बलों के बीच वर्गीकृत उपग्रह इमेजरी साझा करने के लिए एक संधि-आधारित व्यवस्था"], a:"An intelligence sharing alliance between the US, UK, Canada, Australia, and New Zealand", exp:"It represents the world's absolute most robust and deeply integrated multilateral intelligence-sharing agreement."},
+  {topic:"geo", q:"What is the primary international role of the FATF?", h:"FATF की प्राथमिक अंतर्राष्ट्रीय भूमिका क्या है?", opt:["Combating global money laundering and international terrorist financing operations","Coordinating international tax information exchange to prevent offshore tax evasion","Supervising cross-border capital flows to maintain global financial system stability","Regulating international credit rating agencies and sovereign bond issuance standards"], h_opt:["वैश्विक मनी लॉन्ड्रिंग और अंतरराष्ट्रीय आतंकवादी वित्तपोषण संचालन का मुकाबला करना","अपतटीय कर चोरी को रोकने के लिए अंतर्राष्ट्रीय कर सूचना विनिमय का समन्वय करना","वैश्विक वित्तीय प्रणाली स्थिरता बनाए रखने के लिए सीमा-पार पूंजी प्रवाह की निगरानी करना","अंतरराष्ट्रीय क्रेडिट रेटिंग एजेंसियों और संप्रभु बांड जारी करने के मानकों को नियंत्रित करना"], a:"Combating global money laundering and international terrorist financing operations", exp:"Being placed on the FATF's notorious 'Grey List' severely restricts a developing country's access to global finance."},
+  {topic:"geo", q:"What defines 'Strategic Autonomy' in the context of Indian foreign policy?", h:"भारतीय विदेश नीति के संदर्भ में 'रणनीतिक स्वायत्तता' को क्या परिभाषित करता है?", opt:["The ability to make independent foreign policy choices without being forced into rigid alliances","A foreign policy doctrine that prioritizes economic partnerships over security commitments","A strategy of maintaining equidistance from all major powers to maximize negotiating leverage","A constitutional commitment to multilateralism and international institution-building as primary tools"], h_opt:["कठोर गठबंधनों में मजबूर हुए बिना स्वतंत्र विदेश नीति विकल्प चुनने की क्षमता","एक विदेश नीति सिद्धांत जो सुरक्षा प्रतिबद्धताओं पर आर्थिक साझेदारी को प्राथमिकता देता है","अधिकतम बातचीत उत्तोलन के लिए सभी प्रमुख शक्तियों से समान दूरी बनाए रखने की एक रणनीति","बहुपक्षवाद और अंतर्राष्ट्रीय संस्था-निर्माण के लिए प्राथमिक उपकरण के रूप में एक संवैधानिक प्रतिबद्धता"], a:"The ability to make independent foreign policy choices without being forced into rigid alliances", exp:"It strategically allows India to buy Russian oil while simultaneously partnering aggressively with the US in the QUAD."},
+
+  // ════════ TIER 3: MODERATE-HARD (71-100) ════════
+  {topic:"gk", q:"India became the world's most populous nation in 2023, surpassing which country?", h:"2023 में भारत विश्व का सबसे अधिक जनसंख्या वाला देश बना, किस देश को पीछे छोड़कर?", opt:["United States of America","Indonesia — 4th most populous nation","China — previously the most populous","Nigeria — Africa's most populous nation"], h_opt:["संयुक्त राज्य अमेरिका","इंडोनेशिया — चौथा सबसे अधिक जनसंख्या वाला राष्ट्र","चीन — पहले सबसे अधिक जनसंख्या वाला","नाइजीरिया — अफ्रीका का सबसे अधिक जनसंख्या वाला राष्ट्र"], a:"China — previously the most populous", exp:"In April 2023, India officially surpassed China as the world's most populous nation with 1.43 billion people, according to the UN Population Fund. This demographic shift has major economic and geopolitical implications."},
+  {topic:"gk", q:"Which Article of the Indian Constitution guarantees the fundamental Right to Life and Personal Liberty?", h:"भारतीय संविधान का कौन सा अनुच्छेद जीवन और व्यक्तिगत स्वतंत्रता के मौलिक अधिकार की गारंटी देता है?", opt:["Article 14 — Right to Equality before law for all citizens","Article 19 — Freedom of speech, assembly, and movement","Article 21 — Right to Life and Personal Liberty","Article 32 — Right to directly approach the Supreme Court"], h_opt:["अनुच्छेद 14 — सभी नागरिकों के लिए कानून के समक्ष समानता","अनुच्छेद 19 — वाक् स्वतंत्रता, सभा और आवागमन की स्वतंत्रता","अनुच्छेद 21 — प्राण एवं दैहिक स्वतंत्रता का संरक्षण","अनुच्छेद 32 — सुप्रीम कोर्ट में सीधे जाने का अधिकार"], a:"Article 21 — Right to Life and Personal Liberty", exp:"Article 21 is the heart of the Constitution. Courts have broadly interpreted it to include rights to privacy, education, healthcare, and a dignified life. The famous Maneka Gandhi case (1978) greatly expanded its scope."},
+  {topic:"geo", q:"The Abraham Accords (2020) normalized diplomatic relations between Israel and which set of Arab nations?", h:"अब्राहम समझौते (2020) ने इज़राइल और किन अरब देशों के बीच कूटनीतिक संबंध सामान्य किए?", opt:["Saudi Arabia and Kuwait — after secret oil deal negotiations","UAE and Bahrain, later joined by Morocco and Sudan","Egypt and Jordan — both signed earlier Camp David Accords","Qatar and Oman — after intense UN-mediated pressure"], h_opt:["सऊदी अरब और कुवैत — गुप्त तेल सौदे की बातचीत के बाद","UAE और बहरीन, बाद में मोरक्को और सूडान भी शामिल हुए","मिस्र और जॉर्डन — दोनों ने पहले कैंप डेविड समझौते पर हस्ताक्षर किए थे","कतर और ओमान — तीव्र UN-मध्यस्थता के बाद"], a:"UAE and Bahrain, later joined by Morocco and Sudan", exp:"Brokered by the Trump administration in 2020, the Abraham Accords were the first Arab-Israeli normalization agreements in 26 years. Saudi Arabia has not yet formally joined, making it a major ongoing geopolitical watch point."},
+  {topic:"ent", q:"What does 'ESOP' stand for in the context of startup employee compensation?", h:"स्टार्टअप कर्मचारी मुआवजे के संदर्भ में 'ESOP' का क्या अर्थ है?", opt:["Enterprise Sales Optimization Program — a B2B revenue framework","Employee Stock Ownership Plan — equity given to employees","External Startup Operations Protocol — a compliance document","Equity Sharing and Outplacement Policy — a legal HR guideline"], h_opt:["एंटरप्राइज़ सेल्स ऑप्टिमाइजेशन प्रोग्राम — एक B2B राजस्व ढांचा","एम्प्लॉई स्टॉक ओनरशिप प्लान — कर्मचारियों को दी जाने वाली इक्विटी","एक्सटर्नल स्टार्टअप ऑपरेशंस प्रोटोकॉल — एक अनुपालन दस्तावेज़","इक्विटी शेयरिंग एंड आउटप्लेसमेंट पॉलिसी — एक कानूनी HR दिशानिर्देश"], a:"Employee Stock Ownership Plan — equity given to employees", exp:"ESOPs give employees shares that vest over time, aligning their success with the company's. Early Zomato and Nykaa employees became millionaires through ESOPs when the companies went public. It's a key startup retention tool."},
+  {topic:"ai", q:"What critical function does RAG (Retrieval-Augmented Generation) perform?", h:"RAG (रिट्रीवल-ऑगमेंटेड जनरेशन) क्या महत्वपूर्ण कार्य करता है?", opt:["It generates entirely random mathematical numbers utilizing advanced quantum computing processors","It grounds LLM responses by fetching accurate facts from an external database before answering","It successfully retrieves accidentally deleted files from severely corrupted computer hard drives","It flawlessly translates spoken audio languages into highly accurate written text in real time"], h_opt:["यह उन्नत क्वांटम कंप्यूटिंग प्रोसेसर का उपयोग करके पूरी तरह से यादृच्छिक गणितीय संख्याएं उत्पन्न करता है","यह उत्तर देने से पहले बाहरी डेटाबेस से सटीक तथ्य प्राप्त करके LLM प्रतिक्रियाओं को आधार बनाता है","यह गंभीर रूप से दूषित कंप्यूटर हार्ड ड्राइव से गलती से हटाई गई फ़ाइलों को सफलतापूर्वक पुनर्प्राप्त करता है","यह वास्तविक समय में बोली जाने वाली ऑडियो भाषाओं का अत्यधिक सटीक लिखित पाठ में अनुवाद करता है"], a:"It grounds LLM responses by fetching accurate facts from an external database before answering", exp:"RAG significantly reduces model hallucinations by physically providing the AI with specific factual documents to read."},
+  {topic:"ai", q:"What defines 'Emergent Behavior' in scaled artificial intelligence models?", h:"स्केल्ड आर्टिफिशियल इंटेलिजेंस मॉडल में 'इमर्जेंट बिहेवियर' क्या परिभाषित करता है?", opt:["Sudden unpredictable capabilities that appear in very large models but were absent in smaller versions","The gradual improvement in model performance that scales predictably with additional training compute","A deliberate design choice by engineers to enable new capabilities at a specific parameter threshold","The convergence of multiple narrow AI systems into a unified general-purpose reasoning architecture"], h_opt:["अचानक अप्रत्याशित क्षमताएं जो बहुत बड़े मॉडल में दिखाई देती हैं लेकिन छोटे संस्करणों में नहीं थीं","मॉडल प्रदर्शन में क्रमिक सुधार जो अतिरिक्त प्रशिक्षण कंप्यूट के साथ पूर्वानुमानित रूप से बढ़ता है","इंजीनियरों द्वारा एक विशिष्ट पैरामीटर सीमा पर नई क्षमताओं को सक्षम करने के लिए एक जानबूझकर डिजाइन विकल्प","एक एकीकृत सामान्य-उद्देश्य तर्क आर्किटेक्चर में कई संकीर्ण AI प्रणालियों का अभिसरण"], a:"Sudden unpredictable capabilities that appear in very large models but were absent in smaller versions", exp:"For example, GPT-3 suddenly gaining the undocumented ability to do complex logical arithmetic strictly at scale."},
+  {topic:"ai", q:"What is the absolute core focus of 'AI Alignment' research?", h:"'AI अलाइनमेंट' अनुसंधान का पूर्ण मुख्य फोकस क्या है?", opt:["Formatting generated text responses properly so they align perfectly on a mobile device screen","Ensuring highly autonomous AI systems pursue goals that strictly match human safety values","Optimizing physical hardware so that modern AI chips fit perfectly into standard server racks","Matching the factual accuracy of AI generated responses directly against Wikipedia articles"], h_opt:["जेनरेट किए गए टेक्स्ट को ठीक से प्रारूपित करना ताकि वे मोबाइल डिवाइस स्क्रीन पर पूरी तरह से संरेखित हों","यह सुनिश्चित करना कि अत्यधिक स्वायत्त AI सिस्टम उन लक्ष्यों का पीछा करते हैं जो मानव सुरक्षा मूल्यों से मेल खाते हैं","भौतिक हार्डवेयर को अनुकूलित करना ताकि आधुनिक AI चिप्स मानक सर्वर रैक में पूरी तरह से फिट हों","AI द्वारा उत्पन्न प्रतिक्रियाओं की तथ्यात्मक सटीकता का सीधे विकिपीडिया लेखों के विरुद्ध मिलान करना"], a:"Ensuring highly autonomous AI systems pursue goals that strictly match human safety values", exp:"It actively prevents an ultra-powerful AI from acting deceptively or causing harm while pursuing its objective."},
+  {topic:"ai", q:"What is 'Prompt Engineering' in the context of working effectively with AI models?", h:"AI मॉडल के साथ प्रभावी ढंग से काम करने के संदर्भ में 'प्रॉम्प्ट इंजीनियरिंग' क्या है?", opt:["Designing the physical silicon chips that power large AI data centers","Writing backend server code to deploy AI apps in cloud production","Crafting effective inputs and instructions to get the best outputs from AI models","Hacking AI systems to test their security by running automated attack simulations"], h_opt:["बड़े AI डेटा केंद्रों को शक्ति देने वाले भौतिक सिलिकॉन चिप्स डिज़ाइन करना","क्लाउड प्रोडक्शन में AI ऐप्स तैनात करने के लिए बैकएंड सर्वर कोड लिखना","AI मॉडल से सर्वोत्तम आउटपुट पाने के लिए प्रभावी इनपुट और निर्देश तैयार करना","स्वचालित अटैक सिमुलेशन चलाकर AI सिस्टम को सुरक्षा के लिए हैक करना"], a:"Crafting effective inputs and instructions to get the best outputs from AI models", exp:"Prompt engineering is now a valuable skill. Techniques like asking the AI to 'think step by step' (Chain-of-Thought) can dramatically improve accuracy. Companies pay Prompt Engineers ₹15-50 LPA today."},
+  {topic:"ai", q:"What precisely defines a 'Multimodal' Artificial Intelligence system?", h:"'मल्टीमॉडल' आर्टिफिशियल इंटेलिजेंस सिस्टम को ठीक से क्या परिभाषित करता है?", opt:["An AI system that can fluently speak and translate over fifty different human languages simultaneously","An AI that can process and generate multiple distinct data types like text, images, and audio simultaneously","An advanced AI architecture that securely runs across multiple decentralized global cloud servers","An enterprise AI software that currently holds multiple simultaneous premium user accounts securely"], h_opt:["एक AI प्रणाली जो एक साथ पचास से अधिक विभिन्न मानव भाषाओं को धाराप्रवाह बोल और अनुवाद कर सकती है","एक AI जो एक साथ पाठ, चित्र और ऑडियो जैसे कई विशिष्ट डेटा प्रकारों को संसाधित और उत्पन्न कर सकता है","एक उन्नत AI आर्किटेक्चर जो सुरक्षित रूप से कई विकेन्द्रीकृत वैश्विक क्लाउड सर्वरों पर चलता है","एक एंटरप्राइज़ AI सॉफ़्टवेयर जो वर्तमान में एक साथ कई प्रीमियम उपयोगकर्ता खातों को सुरक्षित रूप से रखता है"], a:"An AI that can process and generate multiple distinct data types like text, images, and audio simultaneously", exp:"Frontier models like GPT-4o and Gemini 1.5 are profoundly multimodal, capable of natively 'seeing' and 'hearing'."},
+  {topic:"ent", q:"What exactly is the aggressive startup growth strategy 'Blitzscaling'?", h:"आक्रामक स्टार्टअप विकास रणनीति 'ब्लिट्ज़स्केलिंग' वास्तव में क्या है?", opt:["Prioritizing extreme operational speed over capital efficiency to capture a massive first-mover advantage","Systematically expanding into adjacent product categories once a core market is fully saturated","Achieving profitability on a per-unit basis before aggressively scaling marketing and distribution","Building a lean and highly efficient organization to sustain growth without raising additional capital"], h_opt:["बड़े पैमाने पर प्रथम-प्रस्तावक लाभ प्राप्त करने के लिए पूंजी दक्षता पर अत्यधिक परिचालन गति को प्राथमिकता देना","एक बार मुख्य बाजार पूरी तरह से संतृप्त हो जाने पर व्यवस्थित रूप से आसन्न उत्पाद श्रेणियों में विस्तार करना","मार्केटिंग और वितरण को आक्रामक रूप से बढ़ाने से पहले प्रति-इकाई आधार पर लाभप्रदता प्राप्त करना","अतिरिक्त पूंजी जुटाए बिना विकास को बनाए रखने के लिए एक दुबला और अत्यधिक कुशल संगठन बनाना"], a:"Prioritizing extreme operational speed over capital efficiency to capture a massive first-mover advantage", exp:"Uber famously utilized aggressive blitzscaling to totally dominate global markets before regulators could react."},
+  {topic:"ent", q:"What defines the concept of 'Adverse Selection' in venture capital funding?", h:"वेंचर कैपिटल फंडिंग में 'प्रतिकूल चयन' की अवधारणा क्या परिभाषित करती है?", opt:["When information asymmetry causes a market to be dominated by lower-quality participants","When investors offer identical term sheets to all startups regardless of their quality or traction","When high valuations discourage quality founders from raising capital in a downturn market","When a company's best employees leave because compensation does not reflect market rates"], h_opt:["जब सूचना विषमता के कारण बाजार में निम्न-गुणवत्ता वाले प्रतिभागियों का वर्चस्व हो जाता है","जब निवेशक गुणवत्ता या कर्षण की परवाह किए बिना सभी स्टार्टअप को समान टर्म शीट प्रदान करते हैं","जब उच्च मूल्यांकन गुणवत्ता संस्थापकों को मंदी बाजार में पूंजी जुटाने से हतोत्साहित करते हैं","जब कंपनी के सर्वश्रेष्ठ कर्मचारी इसलिए छोड़ देते हैं क्योंकि मुआवजा बाजार दरों को प्रतिबिंबित नहीं करता"], a:"When information asymmetry causes a market to be dominated by lower-quality participants", exp:"High-quality startups avoid accepting toxic desperate terms, leaving only the failing 'lemons' in the active pool."},
+  {topic:"ent", q:"What does the vital analytical term 'Unit Economics' accurately refer to?", h:"महत्वपूर्ण विश्लेषणात्मक शब्द 'यूनिट इकोनॉमिक्स' का सटीक अर्थ क्या है?", opt:["The direct revenues and costs strictly associated with a single distinct unit of a product","The aggregate financial performance of all business divisions within a company for a fiscal year","The marginal cost structure required to serve each additional geographic market at scale","The break-even analysis used to determine when total company revenue exceeds fixed overhead"], h_opt:["सीधे तौर पर उत्पाद की एकल विशिष्ट इकाई से जुड़े प्रत्यक्ष राजस्व और लागत","एक वित्तीय वर्ष के लिए कंपनी के सभी व्यावसायिक प्रभागों का समग्र वित्तीय प्रदर्शन","स्केल पर प्रत्येक अतिरिक्त भौगोलिक बाजार की सेवा के लिए आवश्यक सीमांत लागत संरचना","ब्रेक-ईवन विश्लेषण जिसका उपयोग यह निर्धारित करने के लिए किया जाता है कि कुल कंपनी राजस्व निश्चित ओवरहेड से कब अधिक हो जाता है"], a:"The direct revenues and costs strictly associated with a single distinct unit of a product", exp:"If you lose money on every unit (negative unit economics), aggressively scaling up just kills the company much faster."},
+  {topic:"ent", q:"How do 'Switching Costs' successfully create a powerful competitive moat?", h:"'स्विचिंग कॉस्ट' सफलतापूर्वक एक शक्तिशाली प्रतिस्पर्धी खाई कैसे बनाते हैं?", opt:["By making it financially, technically, or psychologically painful for a customer to leave for a competitor","By offering deep discounts and loyalty rewards to retain customers who are considering switching","By continuously launching new features that expand the product scope before competitors can replicate","By aggressively lowering prices below cost to make it economically irrational for users to switch"], h_opt:["किसी ग्राहक के लिए प्रतिस्पर्धी के पास जाने को वित्तीय, तकनीकी या मनोवैज्ञानिक रूप से दर्दनाक बनाकर","उन ग्राहकों को बनाए रखने के लिए गहरी छूट और लॉयल्टी पुरस्कार देकर जो स्विच करने पर विचार कर रहे हैं","प्रतिस्पर्धियों के नकल करने से पहले उत्पाद के दायरे का विस्तार करने वाली नई सुविधाएं लगातार लॉन्च करके","उपयोगकर्ताओं के लिए स्विच करना आर्थिक रूप से अतार्किक बनाने के लिए कीमतें लागत से नीचे आक्रामक रूप से कम करके"], a:"By making it financially, technically, or psychologically painful for a customer to leave for a competitor", exp:"For example, deeply migrating all enterprise engineering data from AWS to Google Cloud is extremely painful."},
+  {topic:"ent", q:"What fundamentally distinguishes a 'Platform' business from a 'Pipeline' business?", h:"एक 'प्लेटफॉर्म' व्यवसाय को 'पाइपलाइन' व्यवसाय से मौलिक रूप से क्या अलग करता है?", opt:["Platforms facilitate value exchange between external producers and consumers while pipelines create value linearly","Pipelines serve enterprise clients while platforms exclusively target individual consumer segments","Platforms are always free to use for end users while pipelines charge a recurring subscription fee","Pipelines generate network effects while platforms rely on linear economies of production scale"], h_opt:["प्लेटफ़ॉर्म बाहरी उत्पादकों और उपभोक्ताओं के बीच मूल्य विनिमय की सुविधा प्रदान करते हैं जबकि पाइपलाइन रैखिक रूप से मूल्य बनाते हैं","पाइपलाइन उद्यम ग्राहकों की सेवा करते हैं जबकि प्लेटफ़ॉर्म विशेष रूप से व्यक्तिगत उपभोक्ता खंडों को लक्षित करते हैं","प्लेटफ़ॉर्म अंतिम उपयोगकर्ताओं के लिए हमेशा उपयोग करने के लिए मुफ़्त हैं जबकि पाइपलाइन आवर्ती सदस्यता शुल्क लेते हैं","पाइपलाइन नेटवर्क प्रभाव उत्पन्न करते हैं जबकि प्लेटफ़ॉर्म उत्पादन पैमाने की रैखिक अर्थव्यवस्थाओं पर निर्भर करते हैं"], a:"Platforms facilitate value exchange between external producers and consumers while pipelines create value linearly", exp:"Airbnb is a decentralized platform network; a highly traditional physical hotel chain operates as a strict pipeline."},
+{
+   topic: "geo", 
+   q: "Scheduled for 2026, which upcoming NASA mission will conduct the first crewed lunar flyby since the end of the Apollo era?", 
+   h: "2026 के लिए निर्धारित, नासा का कौन सा आगामी मिशन ऐतिहासिक अपोलो युग के अंत के बाद पहला मानवयुक्त चंद्र फ्लाईबाई करेगा?", 
+   opt: [
+     "Artemis I",
+     "Artemis II",
+     "Apollo 26",
+     "Luna 6"
+   ], 
+   h_opt: [
+     "आर्टेमिस I",
+     "आर्टेमिस II",
+     "अपोलो 26",
+     "लूना 6"
+   ], 
+   a: "Artemis II", 
+   exp: "Artemis II will send four astronauts around the Moon. Artemis I was an uncrewed test, the Apollo program officially ended with Apollo 17, and Luna is a Russian program."
+  },
+  {topic:"ent", q:"What characterizes true 'Founder-Market Fit'?", h:"सच्चे 'फाउंडर-मार्केट फिट' की क्या विशेषता है?", opt:["When a founder possesses deep domain expertise and unfair advantages specifically suited to their market","When a founding team's background and network perfectly match the sales cycle of their target enterprise","When a startup's mission aligns closely with its founders' personal values and long-term life goals","When a founder's technical skills are sufficient to build the initial product without hiring engineers"], h_opt:["जब किसी संस्थापक के पास अपने बाजार के लिए विशेष रूप से उपयुक्त गहन डोमेन विशेषज्ञता और अनुचित लाभ होता है","जब संस्थापक टीम की पृष्ठभूमि और नेटवर्क उनके लक्षित उद्यम की बिक्री चक्र से पूरी तरह मेल खाती है","जब स्टार्टअप का मिशन संस्थापकों के व्यक्तिगत मूल्यों और दीर्घकालिक जीवन लक्ष्यों के साथ बारीकी से संरेखित होता है","जब संस्थापक की तकनीकी कौशल इंजीनियरों को काम पर रखे बिना प्रारंभिक उत्पाद बनाने के लिए पर्याप्त होती है"], a:"When a founder possesses deep domain expertise and unfair advantages specifically suited to their market", exp:"Elite venture investors heavily weight this because building in a highly complex domain requires deep lived experience."},
+  {topic:"ent", q:"What brutal financial event happens in a startup 'Down Round'?", h:"स्टार्टअप 'डाउन राउंड' में कौन सी क्रूर वित्तीय घटना होती है?", opt:["The company raises capital at a lower valuation than its previous round, triggering equity dilution","The company raises a new funding round at the same valuation as the previous round with no dilution","The company issues convertible debt to bridge to a future priced equity round at a discount","The company buys back founder shares at a premium to reduce the outstanding share count"], h_opt:["कंपनी अपने पिछले दौर की तुलना में कम मूल्यांकन पर पूंजी जुटाती है, जिससे इक्विटी डाइल्यूशन होता है","कंपनी बिना किसी डाइल्यूशन के पिछले दौर के समान मूल्यांकन पर एक नया फंडिंग दौर जुटाती है","कंपनी छूट पर भविष्य के मूल्य निर्धारण इक्विटी राउंड तक ब्रिज करने के लिए परिवर्तनीय ऋण जारी करती है","कंपनी बकाया शेयर काउंट को कम करने के लिए प्रीमियम पर संस्थापक शेयरों को वापस खरीदती है"], a:"The company raises capital at a lower valuation than its previous round, triggering equity dilution", exp:"Down rounds completely crush internal morale and mathematically trigger aggressive anti-dilution protections."},
+  {topic:"ent", q:"What protective action does a 'Liquidation Preference' clause execute?", h:"'लिक्विडेशन प्रेफरेंस' क्लॉज क्या सुरक्षात्मक कार्रवाई निष्पादित करता है?", opt:["Ensures investors get their money back first before founders or employees during a corporate exit","Determines the minimum sale price at which founders can trigger a voluntary company liquidation","Sets the order of priority in which different classes of shareholders receive proceeds at exit","Allows investors to choose between receiving their preference amount or converting to common equity"], h_opt:["यह सुनिश्चित करता है कि कॉर्पोरेट निकास के दौरान संस्थापकों या कर्मचारियों से पहले निवेशकों को अपना पैसा वापस मिल जाए","वह न्यूनतम बिक्री मूल्य निर्धारित करता है जिस पर संस्थापक स्वैच्छिक कंपनी परिसमापन को ट्रिगर कर सकते हैं","निकास पर विभिन्न वर्गों के शेयरधारकों को आय प्राप्त होने की प्राथमिकता का क्रम निर्धारित करता है","निवेशकों को अपनी वरीयता राशि प्राप्त करने या सामान्य इक्विटी में परिवर्तित करने के बीच चुनने की अनुमति देता है"], a:"Ensures investors get their money back first before founders or employees during a corporate exit", exp:"It structurally protects downside financial risk for venture capitalists if the company sells for a disappointingly low amount."},
+  {topic:"geo", q:"What defines the modern geopolitical concept of the 'Indo-Pacific'?", h:"'इंडो-पैसिफिक' की आधुनिक भू-राजनीतिक अवधारणा को क्या परिभाषित करता है?", opt:["A strategic reframing merging the Indian and Pacific Oceans to address interconnected security challenges","A formal military alliance treaty between coastal nations bordering both the Indian and Pacific Oceans","A multilateral economic framework focused on reducing trade barriers across the broader Asian region","A geographic designation used strictly by oceanographers to describe shared marine ecosystems"], h_opt:["परस्पर जुड़ी सुरक्षा चुनौतियों का समाधान करने के लिए हिंद और प्रशांत महासागरों को मिलाने वाला एक रणनीतिक पुनर्निर्धारण","हिंद और प्रशांत महासागरों की सीमावर्ती तटीय देशों के बीच एक औपचारिक सैन्य गठबंधन संधि","व्यापक एशियाई क्षेत्र में व्यापार बाधाओं को कम करने पर केंद्रित एक बहुपक्षीय आर्थिक ढांचा","साझा समुद्री पारिस्थितिक तंत्र का वर्णन करने के लिए विशेष रूप से समुद्र विज्ञानियों द्वारा उपयोग किया जाने वाला एक भौगोलिक पदनाम"], a:"A strategic reframing merging the Indian and Pacific Oceans to address interconnected security challenges", exp:"It strategically shifted diplomatic focus away from the generic 'Asia-Pacific' to actively include the Republic of India."},
+  {topic:"geo", q:"What aggressive actions specifically characterize 'Grey Zone Warfare'?", h:"कौन सी आक्रामक कार्रवाइयां विशेष रूप से 'ग्रे जोन वारफेयर' की विशेषता हैं?", opt:["Covert actions that deliberately remain below the threshold of triggering a formal military response","Conventional military operations conducted in densely populated areas to maximize civilian disruption","Large-scale economic sanctions coordinated to bring an adversary to the negotiating table quickly","Proxy warfare where a major power funds and arms a smaller state to fight on its behalf regionally"], h_opt:["गुप्त कार्रवाइयां जो जानबूझकर औपचारिक सैन्य प्रतिक्रिया को ट्रिगर करने की सीमा से नीचे रहती हैं","घनी आबादी वाले क्षेत्रों में नागरिक व्यवधान को अधिकतम करने के लिए आयोजित पारंपरिक सैन्य अभियान","बड़े पैमाने पर आर्थिक प्रतिबंध जल्दी बातचीत की मेज पर एक प्रतिद्वंद्वी को लाने के लिए समन्वित","प्रॉक्सी युद्ध जहां एक प्रमुख शक्ति क्षेत्रीय रूप से अपनी ओर से लड़ने के लिए एक छोटे राज्य को वित्त पोषित और सशस्त्र करती है"], a:"Covert actions that deliberately remain below the threshold of triggering a formal military response", exp:"China's artificial military islands and Russia's covert 'Little Green Men' in Crimea are prime aggressive examples."},
+  {topic:"geo", q:"What is the geopolitical strategy known as the 'Weaponization of Trade'?", h:"'व्यापार के शस्त्रीकरण' के रूप में जानी जाने वाली भू-राजनीतिक रणनीति क्या है?", opt:["Using tariffs, export controls, and supply chain dependencies to coerce geopolitical rivals politically","Negotiating bilateral trade agreements that include binding security and defense cooperation clauses","Establishing state-backed sovereign wealth funds to acquire strategic stakes in foreign companies","Coordinating import substitution programs to reduce dependence on adversary-controlled supply chains"], h_opt:["भू-राजनीतिक प्रतिद्वंद्वियों को राजनीतिक रूप से मजबूर करने के लिए टैरिफ, निर्यात नियंत्रण और आपूर्ति श्रृंखला निर्भरता का उपयोग करना","द्विपक्षीय व्यापार समझौतों पर बातचीत करना जिसमें बाध्यकारी सुरक्षा और रक्षा सहयोग खंड शामिल हैं","विदेशी कंपनियों में रणनीतिक हिस्सेदारी प्राप्त करने के लिए राज्य-समर्थित संप्रभु धन कोष स्थापित करना","विरोधी-नियंत्रित आपूर्ति श्रृंखलाओं पर निर्भरता कम करने के लिए आयात प्रतिस्थापन कार्यक्रमों का समन्वय करना"], a:"Using tariffs, export controls, and supply chain dependencies to coerce geopolitical rivals politically", exp:"The United States aggressively banning advanced AI chip exports to China is a textbook modern geopolitical example."},
+  {topic:"geo", q:"What deceptive practice defines 'Debt-Trap Diplomacy'?", h:"कौन सी भ्रामक प्रथा 'डेब्ट-ट्रैप डिप्लोमेसी' को परिभाषित करती है?", opt:["Lending large sums to vulnerable nations for infrastructure, then leveraging debt to gain strategic influence","Providing conditional development loans that require recipient nations to purchase goods from the lender","Offering debt relief to poorer nations in exchange for exclusive resource extraction rights","Financing infrastructure in developing nations through grants that do not require repayment"], h_opt:["बुनियादी ढांचे के लिए कमजोर देशों को बड़ी रकम उधार देना, फिर रणनीतिक प्रभाव प्राप्त करने के लिए ऋण का लाभ उठाना","सशर्त विकास ऋण प्रदान करना जिसके लिए प्राप्तकर्ता देशों को ऋणदाता से सामान खरीदना आवश्यक है","ऋण राहत की पेशकश करना जो गरीब देशों को विनिमय में विशेष संसाधन निष्कर्षण अधिकार देने के लिए मजबूर करती है","विकासशील देशों में बुनियादी ढांचे को अनुदान के माध्यम से वित्तपोषित करना जिनके लिए पुनर्भुगतान की आवश्यकता नहीं है"], a:"Lending large sums to vulnerable nations for infrastructure, then leveraging debt to gain strategic influence", exp:"Sri Lanka shockingly handing over the highly strategic Hambantota port to China is widely cited as the prime example."},
+  {topic:"geo", q:"What complex financial action defines 'Sanctions Evasion'?", h:"कौन सी जटिल वित्तीय कार्रवाई 'प्रतिबंधों की चोरी' को परिभाषित करती है?", opt:["Using shell companies, crypto, or third-party nations to bypass international economic penalties","Formally appealing sanctions designations through multilateral arbitration forums or treaty mechanisms","Lobbying the sanctioning government directly to negotiate a phased sanctions relief agreement","Applying for humanitarian exemptions that allow restricted trade in food, medicine, and energy"], h_opt:["अंतरराष्ट्रीय आर्थिक दंड से बचने के लिए शेल कंपनियों, क्रिप्टो या तीसरे पक्ष के देशों का उपयोग करना","बहुपक्षीय मध्यस्थता मंचों या संधि तंत्रों के माध्यम से प्रतिबंध पदनामों की औपचारिक अपील करना","चरणबद्ध प्रतिबंध राहत समझौते पर बातचीत करने के लिए सीधे प्रतिबंध लगाने वाली सरकार की पैरवी करना","मानवीय छूट के लिए आवेदन करना जो भोजन, दवा और ऊर्जा में प्रतिबंधित व्यापार की अनुमति देता है"], a:"Using shell companies, crypto, or third-party nations to bypass international economic penalties", exp:"Russia heavily surviving Western sanctions by aggressively routing oil through India and China is blatant evasion."},
+  {topic:"geo", q:"How does modern 'Information Warfare' fundamentally differ from traditional propaganda?", h:"आधुनिक 'सूचना युद्ध' पारंपरिक प्रचार से मौलिक रूप से कैसे भिन्न है?", opt:["It uses AI and social media at micro-targeted scale to manipulate beliefs and erode societal trust","It relies on state-controlled broadcast media to deliver centralized messaging to mass audiences","It operates through diplomatic back-channels to shape elite opinion without public visibility","It focuses on disrupting enemy communication networks through electronic jamming and signal interception"], h_opt:["यह सामाजिक विश्वास में हेरफेर करने और उसे कमजोर करने के लिए सूक्ष्म-लक्षित पैमाने पर AI और सोशल मीडिया का उपयोग करता है","यह बड़े दर्शकों तक केंद्रीकृत संदेश पहुंचाने के लिए राज्य-नियंत्रित प्रसारण मीडिया पर निर्भर करता है","यह सार्वजनिक दृश्यता के बिना अभिजात वर्ग की राय को आकार देने के लिए राजनयिक बैक-चैनल के माध्यम से काम करता है","यह इलेक्ट्रॉनिक जैमिंग और सिग्नल इंटरसेप्शन के माध्यम से दुश्मन संचार नेटवर्क को बाधित करने पर केंद्रित है"], a:"It uses AI and social media at micro-targeted scale to manipulate beliefs and erode societal trust", exp:"Covert Russian interference in Western democratic elections via highly tuned social media algorithms is the textbook case."},
+  {topic:"geo", q:"What is 'Comprehensive National Power' (CNP) in Chinese strategic thought?", h:"चीनी रणनीतिक सोच में 'व्यापक राष्ट्रीय शक्ति' (CNP) क्या है?", opt:["A holistic Chinese metric combining economic, military, and tech capabilities to measure global standing","An index developed by the IMF to track national competitiveness across G20 member economies","A NATO-developed assessment tool for evaluating member states' defense contribution and readiness","A World Bank composite indicator measuring a nation's governance quality and institutional strength"], h_opt:["वैश्विक स्थिति को मापने के लिए आर्थिक, सैन्य और तकनीकी क्षमताओं का संयोजन एक समग्र चीनी मीट्रिक","G20 सदस्य अर्थव्यवस्थाओं में राष्ट्रीय प्रतिस्पर्धात्मकता को ट्रैक करने के लिए IMF द्वारा विकसित एक सूचकांक","सदस्य राज्यों के रक्षा योगदान और तैयारी का मूल्यांकन करने के लिए NATO द्वारा विकसित एक आकलन उपकरण","राष्ट्र की शासन गुणवत्ता और संस्थागत ताकत को मापने वाला एक विश्व बैंक समग्र संकेतक"], a:"A holistic Chinese metric combining economic, military, and tech capabilities to measure global standing", exp:"China mathematically uses CNP to aggressively plan its grand geopolitical strategy for the 2049 PRC centenary."},
+  {topic:"geo", q:"In strict military strategic theory, what is 'Deterrence by Denial'?", h:"सख्त सैन्य रणनीतिक सिद्धांत में, 'डिटरेंस बाय डिनायल' क्या है?", opt:["Preventing an attack by making the military objective too costly or impossible to achieve","Deterring an adversary by threatening overwhelming retaliation for any act of aggression","Maintaining strategic ambiguity about one's nuclear capabilities to complicate enemy planning","Using economic pressure to deter hostile actions without requiring direct military engagement"], h_opt:["विस्थापित वैश्विक प्रवासियों की भारी लहरों के लिए तत्काल भौतिक सीमा प्रवेश से आक्रामक रूप से इनकार करना","उद्देश्य को व्यावहारिक रूप से असंभव या सैन्य रूप से प्राप्त करने के लिए बहुत महंगा बनाकर हमले को रोकना","अंतर्राष्ट्रीय कूटनीतिक शिखर सम्मेलनों के दौरान जलवायु परिवर्तन के वैज्ञानिक अस्तित्व को आक्रामक रूप से नकारना","संयुक्त राष्ट्र द्वारा प्रस्तावित महत्वपूर्ण अंतरराष्ट्रीय परमाणु निरस्त्रीकरण संधियों पर हस्ताक्षर करने से बिल्कुल इनकार करना"], a:"Preventing an attack by making the military objective too costly or impossible to achieve", exp:"Taiwan's famous 'Porcupine Strategy' (deploying thousands of anti-ship missiles) is strict denial, not punishment."},
+  {topic:"geo", q:"What uniquely characterizes a 'Middle Power' in global geopolitics?", h:"वैश्विक भू-राजनीति में 'मध्यम शक्ति' की विशिष्ट विशेषता क्या है?", opt:["A state not holding superpower status but possessing sufficient influence to shape international events","A regional hegemon that dominates its immediate neighbourhood but lacks global projection capability","A small state that leverages strategic location or specialized resources to punch above its weight","A state that deliberately avoids great power competition by maintaining strict military neutrality"], h_opt:["एक ऐसा राज्य जिसके पास महाशक्ति का दर्जा नहीं है लेकिन अंतरराष्ट्रीय घटनाओं को आकार देने के लिए पर्याप्त प्रभाव है","एक क्षेत्रीय आधिपत्य जो अपने तत्काल पड़ोस में प्रभुत्व रखता है लेकिन वैश्विक प्रक्षेपण क्षमता का अभाव है","एक छोटा राज्य जो अपने भार से ऊपर मुक्का मारने के लिए रणनीतिक स्थान या विशेष संसाधनों का लाभ उठाता है","एक राज्य जो सख्त सैन्य तटस्थता बनाए रखकर महान शक्ति प्रतिस्पर्धा से जानबूझकर बचता है"], a:"A state not holding superpower status but possessing sufficient influence to shape international events", exp:"Powerful middle powers like India and Brazil frequently form coalitions to aggressively protect their sovereign interests."},
+  {topic:"geo", q:"What is the functional difference between 'De-risking' and 'Decoupling' regarding China?", h:"चीन के संबंध में 'डी-रिस्किंग' और 'डीकूपलिंग' के बीच कार्यात्मक अंतर क्या है?", opt:["De-risking targets critical tech supply chains without cutting total trade, unlike complete decoupling","Decoupling aims to reduce trade volumes while de-risking focuses purely on regulatory harmonization","De-risking is a short-term crisis management tool while decoupling represents a long-term structural shift","Decoupling applies to goods trade while de-risking applies exclusively to financial capital flows"], h_opt:["डी-रिस्किंग कुल व्यापार को काटे बिना महत्वपूर्ण तकनीकी आपूर्ति श्रृंखलाओं को लक्षित करता है, पूर्ण डिकूपलिंग के विपरीत","डिकूपलिंग का लक्ष्य व्यापार की मात्रा को कम करना है जबकि डी-रिस्किंग विशुद्ध रूप से नियामक सामंजस्य पर ध्यान केंद्रित करती है","डी-रिस्किंग एक अल्पकालिक संकट प्रबंधन उपकरण है जबकि डिकूपलिंग एक दीर्घकालिक संरचनात्मक बदलाव का प्रतिनिधित्व करती है","डिकूपलिंग वस्तु व्यापार पर लागू होती है जबकि डी-रिस्किंग विशेष रूप से वित्तीय पूंजी प्रवाह पर लागू होती है"], a:"De-risking targets critical tech supply chains without cutting total trade, unlike complete decoupling", exp:"The US and EU rapidly shifted from demanding 'decoupling' to 'de-risking' to carefully avoid total global economic collapse."},
+  {topic:"geo", q:"What defines China's aggressive 'Wolf Warrior Diplomacy'?", h:"चीन की आक्रामक 'वुल्फ वॉरियर डिप्लोमेसी' क्या परिभाषित करती है?", opt:["A highly successful multinational environmental protection program focused strictly on endangered species","A highly aggressive, confrontational style of diplomacy defending Chinese national interests on the global stage","A massive joint military naval exercise conducted annually alongside the Russian Federation military forces","A gentle and highly cooperative diplomatic effort designed strictly to improve western international relations"], h_opt:["लुप्तप्राय प्रजातियों पर कड़ाई से केंद्रित एक अत्यधिक सफल बहुराष्ट्रीय पर्यावरण संरक्षण कार्यक्रम","वैश्विक मंच पर चीनी राष्ट्रीय हितों की रक्षा करने वाली कूटनीति की एक अत्यधिक आक्रामक, टकराव वाली शैली","रूसी संघ के सैन्य बलों के साथ प्रतिवर्ष आयोजित एक विशाल संयुक्त सैन्य नौसैनिक अभ्यास","पश्चिमी अंतरराष्ट्रीय संबंधों को सख्ती से सुधारने के लिए डिज़ाइन किया गया एक सौम्य और अत्यधिक सहकारी राजनयिक प्रयास"], a:"A highly aggressive, confrontational style of diplomacy defending Chinese national interests on the global stage", exp:"Named directly after a Chinese action movie, it marked a drastic shift away from Deng Xiaoping's quiet 'hide your strength' doctrine."},
+  {topic:"geo", q:"What precise capabilities constitute a strategic 'Nuclear Triad'?", h:"क्या सटीक क्षमताएं एक रणनीतिक 'परमाणु त्रय' का निर्माण करती हैं?", opt:["The ability to launch nuclear weapons from land-based silos, submarines, and airborne bombers","A doctrine that limits nuclear deployment to three designated geographic regions globally","A classified three-party agreement governing the safe storage of shared nuclear arsenals","A graduated response framework where nuclear use is triggered by three successive failed diplomatic attempts"], h_opt:["भूमि-आधारित साइलो, पनडुब्बियों और हवाई बमवर्षकों से परमाणु हथियार लॉन्च करने की क्षमता","एक सिद्धांत जो परमाणु तैनाती को विश्व स्तर पर तीन नामित भौगोलिक क्षेत्रों तक सीमित करता है","साझा परमाणु शस्त्रागारों के सुरक्षित भंडारण को नियंत्रित करने वाला एक वर्गीकृत तीन-पक्षीय समझौता","एक क्रमिक प्रतिक्रिया ढांचा जहां तीन लगातार विफल कूटनीतिक प्रयासों द्वारा परमाणु उपयोग को ट्रिगर किया जाता है"], a:"The ability to launch nuclear weapons from land-based silos, submarines, and airborne bombers", exp:"India, the US, Russia, and China possess a fully operational triad, guaranteeing total second-strike survivability."},
+
+  // ════════ TIER 4: HARD (101-120) ════════
+  {topic:"gk", q:"India's first indigenous aircraft carrier, INS Vikrant, was commissioned into the Indian Navy in which year?", h:"भारत के पहले स्वदेशी विमानवाहक पोत INS विक्रांत को भारतीय नौसेना में किस वर्ष कमीशन किया गया?", opt:["2019 — during the Balakot military airstrike operations","2021 — commissioned alongside INS Visakhapatnam destroyer","2022 — making India one of few nations to build carriers domestically","2024 — after DRDO final sea trials and combat certification"], h_opt:["2019 — बालाकोट हवाई हमले के दौरान","2021 — INS विशाखापत्तनम के साथ कमीशन किया गया","2022 — भारत को स्वदेशी वाहक बनाने वाले कुछ राष्ट्रों में से एक बनाया","2024 — DRDO के अंतिम समुद्री परीक्षण के बाद"], a:"2022 — making India one of few nations to build carriers domestically", exp:"INS Vikrant was commissioned by PM Modi on September 2, 2022 in Kochi. At 45,000 tonnes, it is the largest warship ever built in India, placing India among an elite group of nations capable of indigenously constructing aircraft carriers."},
+  {topic:"geo", q:"What is India's 'Act East Policy' primarily designed to achieve in foreign affairs?", h:"भारत की 'एक्ट ईस्ट पॉलिसी' विदेश मामलों में मुख्यतः क्या हासिल करने के लिए बनाई गई है?", opt:["Strengthening economic, strategic, and cultural ties with Southeast and East Asian nations","Accelerating infrastructure development in India's northeastern states to boost border connectivity","Building a multilateral framework with SAARC nations to address shared regional challenges","Expanding India's naval presence in the Bay of Bengal to secure its eastern maritime flank"], h_opt:["दक्षिण-पूर्व और पूर्वी एशियाई देशों के साथ आर्थिक, रणनीतिक और सांस्कृतिक संबंध मजबूत करना","भारत के पूर्वोत्तर राज्यों में सीमा कनेक्टिविटी को बढ़ावा देने के लिए बुनियादी ढांचे के विकास में तेजी लाना","साझा क्षेत्रीय चुनौतियों का समाधान करने के लिए SAARC देशों के साथ एक बहुपक्षीय ढांचा बनाना","अपने पूर्वी समुद्री किनारे को सुरक्षित करने के लिए बंगाल की खाड़ी में भारत की नौसैनिक उपस्थिति का विस्तार करना"], a:"Strengthening economic, strategic, and cultural ties with Southeast and East Asian nations", exp:"Launched in 2014, Act East upgraded India's earlier 'Look East Policy'. It focuses on ASEAN nations, Japan, and South Korea — boosting trade routes, digital connectivity, and strategic partnerships in the Indo-Pacific."},
+  {topic:"gk", q:"Which scheme launched in January 2024 aims to install rooftop solar panels in one crore Indian households?", h:"जनवरी 2024 में शुरू की गई कौन सी योजना एक करोड़ भारतीय घरों में रूफटॉप सोलर पैनल लगाने का लक्ष्य रखती है?", opt:["PM Ujjwala Yojana — provides free LPG connections to BPL households","PM Kusum Scheme — solar pumps for agricultural use only","PM Suryodaya Yojana — rooftop solar panels for 1 crore homes","Solarise India — a World Bank funded rural electrification program"], h_opt:["पीएम उज्ज्वला योजना — BPL परिवारों को मुफ्त LPG कनेक्शन","पीएम कुसुम स्कीम — केवल कृषि उपयोग के लिए सौर पंप","पीएम सूर्योदय योजना — 1 करोड़ घरों के लिए रूफटॉप सोलर पैनल","सोलराइज इंडिया — विश्व बैंक वित्त पोषित ग्रामीण विद्युतीकरण कार्यक्रम"], a:"PM Suryodaya Yojana — rooftop solar panels for 1 crore homes", exp:"Announced by PM Modi in January 2024, PM Suryodaya Yojana aims to install free rooftop solar panels in 1 crore homes. Beneficiaries get up to 300 units of free electricity monthly and can sell surplus power back to the grid."},
+  {topic:"geo", q:"Which international organization publishes the annual 'Human Development Index' ranking countries by well-being?", h:"कौन सी अंतर्राष्ट्रीय संस्था देशों को समृद्धि के आधार पर रैंक करने वाला वार्षिक 'मानव विकास सूचकांक' प्रकाशित करती है?", opt:["World Bank — publishes Ease of Doing Business Index","International Monetary Fund — publishes World Economic Outlook","UNDP — United Nations Development Programme","World Health Organization — publishes Global Health Rankings"], h_opt:["विश्व बैंक — व्यापार करने की सुगमता सूचकांक प्रकाशित करता है","अंतर्राष्ट्रीय मुद्रा कोष — वैश्विक आर्थिक आउटलुक प्रकाशित करता है","UNDP — संयुक्त राष्ट्र विकास कार्यक्रम","विश्व स्वास्थ्य संगठन — वैश्विक स्वास्थ्य रैंकिंग प्रकाशित करता है"], a:"UNDP — United Nations Development Programme", exp:"The HDI, published annually by UNDP, measures development using three metrics: life expectancy, years of schooling, and per capita income. Norway consistently tops the index; India ranks around 134th. It goes beyond GDP to capture human well-being."},
+  {topic:"ent", q:"Which startup accelerator, founded by Paul Graham, is famous for backing Airbnb, Dropbox, Reddit, and Stripe?", h:"पॉल ग्राहम द्वारा स्थापित कौन सा स्टार्टअप एक्सेलेरेटर Airbnb, Dropbox, Reddit और Stripe को समर्थन देने के लिए प्रसिद्ध है?", opt:["Y Combinator — a leading startup accelerator based in Silicon Valley","Sequoia Capital — a prominent venture capital firm in Silicon Valley","Andreessen Horowitz — a major venture capital firm backing tech startups","Techstars — a globally distributed startup accelerator and network"], h_opt:["वाई कॉम्बिनेटर — सिलिकॉन वैली में एक अग्रणी स्टार्टअप एक्सेलेरेटर","सिकोइया कैपिटल — सिलिकॉन वैली में एक प्रमुख वेंचर कैपिटल फर्म","आंद्रेसेन होरोविट्ज़ — टेक स्टार्टअप का समर्थन करने वाली एक प्रमुख वेंचर कैपिटल फर्म","टेकस्टार्स — एक विश्व स्तर पर वितरित स्टार्टअप एक्सेलेरेटर और नेटवर्क"], a:"Y Combinator — a leading startup accelerator based in Silicon Valley", exp:"YC runs intensive 3-month cohorts, providing $500K and mentorship. Its alumni include OpenAI, Coinbase, DoorDash, and companies worth over $600 billion combined. Getting into YC is often compared to getting into Harvard."},
+  {topic:"geo", q:"The Suez Canal, one of the world's busiest shipping lanes, runs through which country?", h:"दुनिया की सबसे व्यस्त शिपिंग लेनों में से एक, स्वेज नहर, किस देश से होकर गुजरती है?", opt:["Egypt — which nationalized it in 1956 under Nasser","Sudan — through which its eastern tributaries flow to the Red Sea","Libya — which shares the eastern Mediterranean coastline nearby","Jordan — which has direct Red Sea access through the Gulf of Aqaba"], h_opt:["मिस्र — जिसने 1956 में नासिर के नेतृत्व में इसका राष्ट्रीयकरण किया","सूडान — जिसकी पूर्वी सहायक नदियाँ लाल सागर में बहती हैं","लीबिया — जो पूर्वी भूमध्यसागरीय तटरेखा के पास है","जॉर्डन — जिसकी अकाबा की खाड़ी के माध्यम से लाल सागर तक सीधी पहुंच है"], a:"Egypt — which nationalized it in 1956 under Nasser", exp:"The Suez Canal connects the Mediterranean to the Red Sea, carrying 12% of world trade. Egypt nationalized it in 1956, triggering the Suez Crisis. In 2021, the Ever Given container ship blocked it for 6 days, costing global trade ~$10B per day."},
+  {topic:"ai", q:"What does 'Big Data' primarily refer to in the context of modern technology and analytics?", h:"आधुनिक प्रौद्योगिकी और विश्लेषण के संदर्भ में 'बिग डेटा' मुख्यतः किसे संदर्भित करता है?", opt:["Datasets so massive and complex that traditional software tools cannot process them efficiently","Large structured databases stored in traditional relational management systems","Cloud-based data warehouses used for running standard business intelligence reports","Encrypted data repositories maintained by enterprise cybersecurity compliance teams"], h_opt:["डेटासेट इतने विशाल और जटिल कि पारंपरिक सॉफ़्टवेयर टूल उन्हें कुशलतापूर्वक प्रोसेस नहीं कर सकते","पारंपरिक संबंधपरक प्रबंधन प्रणालियों में संग्रहीत बड़े संरचित डेटाबेस","मानक व्यावसायिक बुद्धिमत्ता रिपोर्ट चलाने के लिए उपयोग किए जाने वाले क्लाउड-आधारित डेटा वेयरहाउस","उद्यम साइबर सुरक्षा अनुपालन टीमों द्वारा बनाए गए एन्क्रिप्टेड डेटा रिपॉजिटरी"], a:"Datasets so massive and complex that traditional software tools cannot process them efficiently", exp:"Big Data is defined by 3 Vs: Volume (scale), Velocity (speed), and Variety (formats). Social media platforms like Meta process petabytes daily. India's Aadhaar system — storing biometrics of 1.3 billion people — is one of the world's largest Big Data systems."},
+  {topic:"ent", q:"What defines the 'Principal-Agent Problem' in advanced corporate startup governance?", h:"उन्नत कॉर्पोरेट स्टार्टअप गवर्नेंस में 'प्रिंसिपल-एजेंट प्रॉब्लम' को क्या परिभाषित करता है?", opt:["A conflict where founders may take extreme risks that misalign with investor financial interests","A situation where a board member holds conflicting positions in multiple competing portfolio companies","A dispute where early employees feel their equity compensation no longer reflects their contributions","A governance challenge arising when co-founders disagree on the direction of the company"], h_opt:["एक संघर्ष जहां संस्थापक अत्यधिक जोखिम ले सकते हैं जो निवेशकों के वित्तीय हितों के साथ गलत संरेखित होते हैं","एक स्थिति जहां एक बोर्ड सदस्य कई प्रतिस्पर्धी पोर्टफोलियो कंपनियों में परस्पर विरोधी पदों पर है","एक विवाद जहां शुरुआती कर्मचारी महसूस करते हैं कि उनका इक्विटी मुआवजा अब उनके योगदान को नहीं दर्शाता","एक गवर्नेंस चुनौती जो तब उत्पन्न होती है जब सह-संस्थापक कंपनी की दिशा पर असहमत होते हैं"], a:"A conflict where founders may take extreme risks that misalign with investor financial interests", exp:"Harsh vesting schedules and strict board seats exist specifically and primarily to solve this incredibly dangerous misalignment."},
+  {topic:"ent", q:"What paradoxically defines the famous 'Innovator's Dilemma'?", h:"प्रसिद्ध 'इनोवेटर्स डिलेमा' को विरोधाभासी रूप से क्या परिभाषित करता है?", opt:["Listening to existing customers prevents companies from adopting technologies that initially look inferior","Overinvesting in R&D causes a company to miss the optimal market window for launching a product","Scaling a startup too quickly before achieving genuine product-market fit destroys long-term growth","Hiring experienced executives from large corporations stifles innovation in early-stage startups"], h_opt:["मौजूदा ग्राहकों की सुनने से कंपनियों को उन तकनीकों को अपनाने से रोका जाता है जो शुरू में घटिया लगती हैं","R&D में अत्यधिक निवेश करने से एक कंपनी उत्पाद लॉन्च के लिए इष्टतम बाजार विंडो चूक जाती है","वास्तविक उत्पाद-बाजार फिट हासिल करने से पहले एक स्टार्टअप को बहुत तेजी से स्केल करने से दीर्घकालिक विकास नष्ट होता है","बड़े निगमों के अनुभवी अधिकारियों को काम पर रखना प्रारंभिक चरण के स्टार्टअप में नवाचार को दबाता है"], a:"Listening to existing customers prevents companies from adopting technologies that initially look inferior", exp:"Blockbuster completely ignoring Netflix specifically because DVD mailings had low profit margins is the ultimate classic example."},
+  {topic:"ent", q:"What strategic concept defines 'Metered Dose Innovation'?", h:"'मीटर्ड डोज़ इनोवेशन' कौन सी रणनीतिक अवधारणा परिभाषित करती है?", opt:["Releasing small incremental updates to sustain a market safely, rather than executing risky paradigm shifts","A strategy of simultaneously launching innovations across multiple product lines to maximize market coverage","A method of testing disruptive features with a small subset of users before a full public rollout","Spacing out major product releases by years to maintain consumer excitement and anticipation cycles"], h_opt:["जोखिम भरे प्रतिमान बदलावों को निष्पादित करने के बजाय बाजार को सुरक्षित रूप से बनाए रखने के लिए छोटे वृद्धिशील अपडेट जारी करना","अधिकतम बाजार कवरेज के लिए एक साथ कई उत्पाद लाइनों में नवाचार लॉन्च करने की एक रणनीति","पूर्ण सार्वजनिक रोलआउट से पहले उपयोगकर्ताओं के एक छोटे उपसमूह के साथ विघटनकारी सुविधाओं का परीक्षण करने की विधि","उपभोक्ता उत्साह और प्रत्याशा चक्रों को बनाए रखने के लिए वर्षों तक बड़े उत्पाद रिलीज़ को अलग रखना"], a:"Releasing small incremental updates to sustain a market safely, rather than executing risky paradigm shifts", exp:"Apple is the absolute undisputed master of this: slightly better phone cameras every single year maintains dominance safely."},
+  {topic:"ent", q:"What is the incredibly dangerous 'Narrative Risk' during startup fundraising?", h:"स्टार्टअप फंडरेज़िंग के दौरान अविश्वसनीय रूप से खतरनाक 'नैरेटिव रिस्क' क्या है?", opt:["The risk that a founder's future story fails to convince investors, regardless of strong current metrics","The risk of over-promising a product roadmap to investors that the engineering team cannot realistically deliver","The risk of entering a market too early before there is sufficient awareness or demand for the product","The risk of pursuing a contrarian thesis that mainstream investors are not yet ready to understand or fund"], h_opt:["यह जोखिम कि एक संस्थापक की भविष्य की कहानी निवेशकों को मजबूत वर्तमान मेट्रिक्स के बावजूद समझाने में विफल रहती है","उत्पाद रोडमैप का अधिक वादा करने का जोखिम जिसे इंजीनियरिंग टीम यथार्थवादी रूप से वितरित नहीं कर सकती","उत्पाद के लिए पर्याप्त जागरूकता या मांग से पहले बहुत जल्दी बाजार में प्रवेश करने का जोखिम","एक विरोधाभासी थीसिस को आगे बढ़ाने का जोखिम जिसे मुख्यधारा के निवेशक अभी समझने या फंड करने के लिए तैयार नहीं हैं"], a:"The risk that a founder's future story fails to convince investors, regardless of strong current metrics", exp:"Investors invest heavily in the compelling story of the future, absolutely not just the boring spreadsheet of the present."},
+  {topic:"ent", q:"Why is 'Cohort Retention Analysis' mathematically superior to analyzing total aggregate user growth?", h:"'कोहोर्ट रिटेंशन एनालिसिस' कुल समग्र उपयोगकर्ता वृद्धि का विश्लेषण करने की तुलना में गणितीय रूप से बेहतर क्यों है?", opt:["Total growth masks retention problems; cohort analysis shows whether users from different periods behave differently","Aggregate user counts include all signups ever, even those who never completed their onboarding flow","Cohort data is easier to present in board meetings because it requires less statistical background to interpret","Tracking total users is sufficient for early-stage startups but cohort analysis is only relevant post-Series B"], h_opt:["कुल विकास प्रतिधारण समस्याओं को छुपाता है; कोहोर्ट विश्लेषण दिखाता है कि अलग-अलग अवधियों के उपयोगकर्ता अलग-अलग व्यवहार करते हैं या नहीं","समग्र उपयोगकर्ता गणना में सभी साइनअप शामिल हैं, यहां तक कि वे भी जिन्होंने कभी अपना ऑनबोर्डिंग प्रवाह पूरा नहीं किया","कोहोर्ट डेटा बोर्ड मीटिंग में प्रस्तुत करना आसान है क्योंकि इसकी व्याख्या के लिए कम सांख्यिकीय पृष्ठभूमि की आवश्यकता है","कुल उपयोगकर्ताओं को ट्रैक करना प्रारंभिक चरण के स्टार्टअप के लिए पर्याप्त है लेकिन कोहोर्ट विश्लेषण केवल सीरीज बी के बाद प्रासंगिक है"], a:"Total growth masks retention problems; cohort analysis shows whether users from different periods behave differently", exp:"If month-1 retention is aggressively dropping for new signups, the software product is literally dying despite marketing spikes."},
+  {topic:"ent", q:"What crucial capital efficiency metric does the 'Burn Multiple' accurately evaluate?", h:"'बर्न मल्टीपल' किस महत्वपूर्ण पूंजी दक्षता मीट्रिक का सटीक मूल्यांकन करता है?", opt:["Net cash burned divided by net new ARR generated; measures the capital efficiency of growth","The ratio of total equity raised to current annual recurring revenue at any given stage","A multiplier applied to projected revenue when calculating a startup's pre-money valuation","The number of months of operating expenses a company holds in reserve as a liquidity buffer"], h_opt:["शुद्ध नकद जली हुई राशि को उत्पन्न शुद्ध नई ARR से विभाजित किया गया; विकास की पूंजी दक्षता को मापता है","किसी भी चरण में कुल जुटाई गई इक्विटी का वर्तमान वार्षिक आवर्ती राजस्व से अनुपात","स्टार्टअप के प्री-मनी मूल्यांकन की गणना करते समय अनुमानित राजस्व पर लागू गुणक","कंपनी तरलता बफर के रूप में परिचालन व्यय के कितने महीने रिजर्व में रखती है"], a:"Net cash burned divided by net new ARR generated; measures the capital efficiency of growth", exp:"A terribly high burn multiple (greater than 3x) means you are burning massive cash piles just to get a tiny little revenue."},
+  {topic:"ent", q:"What highly aggressive growth strategy defines 'Regulatory Arbitrage'?", h:"कौन सी अत्यधिक आक्रामक विकास रणनीति 'रेगुलेटरी आर्बिट्रेज' को परिभाषित करती है?", opt:["Exploiting differing laws across jurisdictions to operate legally but gain competitive advantages over incumbents","Lobbying governments to shape new regulations in ways that create barriers for potential market entrants","Registering a company in a low-tax jurisdiction to reduce the overall effective corporate tax rate","Negotiating directly with regulators to obtain a sandbox license for testing an unregulated new product"], h_opt:["कानूनी रूप से काम करने के लिए न्यायालयों में अलग-अलग कानूनों का फायदा उठाना लेकिन मौजूदा कंपनियों पर प्रतिस्पर्धात्मक लाभ प्राप्त करना","संभावित बाजार प्रवेशकों के लिए बाधाएं पैदा करने वाले तरीकों से नए नियमों को आकार देने के लिए सरकारों की पैरवी करना","कुल प्रभावी कॉर्पोरेट कर दर को कम करने के लिए कम-कर क्षेत्राधिकार में कंपनी पंजीकृत करना","एक अनियमित नए उत्पाद के परीक्षण के लिए सैंडबॉक्स लाइसेंस प्राप्त करने के लिए सीधे नियामकों के साथ बातचीत करना"], a:"Exploiting differing laws across jurisdictions to operate legally but gain competitive advantages over incumbents", exp:"Uber and Crypto exchanges brilliantly built massive multi-billion dollar valuations entirely off aggressive regulatory arbitrage."},
+  {topic:"geo", q:"India's 'Neighbourhood First Policy' gives strategic priority to which group of nations?", h:"भारत की 'नेबरहुड फर्स्ट पॉलिसी' किस समूह के देशों को रणनीतिक प्राथमिकता देती है?", opt:["Immediate neighbors: Nepal, Sri Lanka, Bangladesh, Bhutan, and Maldives","The SAARC bloc including Pakistan and Afghanistan for regional stability","Southeast Asian nations through the Act East Policy engagement framework","Indian Ocean island nations for maritime security and trade cooperation"], h_opt:["निकटतम पड़ोसी: नेपाल, श्रीलंका, बांग्लादेश, भूटान और मालदीव","क्षेत्रीय स्थिरता के लिए पाकिस्तान और अफगानिस्तान सहित SAARC ब्लॉक","एक्ट ईस्ट पॉलिसी संवाद ढांचे के माध्यम से दक्षिण-पूर्व एशियाई राष्ट्र","समुद्री सुरक्षा और व्यापार सहयोग के लिए हिंद महासागर द्वीप राष्ट्र"], a:"Immediate neighbors: Nepal, Sri Lanka, Bangladesh, Bhutan, and Maldives", exp:"Neighbourhood First is India's core foreign policy doctrine prioritizing South Asian nations. India sent ₹3,800 crore in aid during Sri Lanka's 2022 economic crisis and is Bangladesh's largest trading partner in South Asia."},
+  {topic:"gk", q:"What is the primary aim of India's flagship 'Digital India' programme launched in 2015?", h:"2015 में शुरू किए गए भारत के प्रमुख 'डिजिटल इंडिया' कार्यक्रम का प्राथमिक उद्देश्य क्या है?", opt:["Transforming India into a digitally empowered society and a thriving knowledge economy","Establishing India as a global hub for semiconductor chip design and manufacturing","Creating universal health records for all Indian citizens through a centralized federal database","Developing a sovereign artificial intelligence research institute funded by the central government"], h_opt:["भारत को एक डिजिटल रूप से सशक्त समाज और एक समृद्ध ज्ञान अर्थव्यवस्था में बदलना","भारत को सेमीकंडक्टर चिप डिजाइन और निर्माण के लिए एक वैश्विक केंद्र के रूप में स्थापित करना","एक केंद्रीकृत संघीय डेटाबेस के माध्यम से सभी भारतीय नागरिकों के लिए सार्वभौमिक स्वास्थ्य रिकॉर्ड बनाना","केंद्र सरकार द्वारा वित्त पोषित एक संप्रभु कृत्रिम बुद्धिमत्ता अनुसंधान संस्थान विकसित करना"], a:"Transforming India into a digitally empowered society and a thriving knowledge economy", exp:"Digital India focuses on broadband for all, mobile connectivity, public internet access, e-governance, and electronics manufacturing. Its biggest success stories — UPI (processing $2 trillion annually) and Aadhaar (1.3B enrolled) — are now cited globally as models."},
+  {topic:"geo", q:"What terrifying military concept underlines Russia's alleged 'Escalate to De-escalate' nuclear doctrine?", h:"रूस के कथित 'एस्केलेट टू डी-एस्केलेट' परमाणु सिद्धांत को क्या भयानक सैन्य अवधारणा रेखांकित करती है?", opt:["Using a low-yield tactical nuclear weapon early in a losing conventional war to shock the adversary into surrender","Threatening to launch a massive strategic nuclear strike unless a ceasefire is agreed within a fixed 24-hour window","Deliberately ambiguating one's nuclear posture to make adversaries uncertain about when weapons would actually be used","Deploying nuclear submarines to disputed waters as a coercive signaling tool without crossing the threshold of use"], h_opt:["विरोधी को आत्मसमर्पण करने के लिए मजबूर करने हेतु हारते हुए पारंपरिक युद्ध में जल्दी कम-उपज सामरिक परमाणु हथियार का उपयोग करना","एक निश्चित 24 घंटे की खिड़की के भीतर युद्धविराम सहमत न होने पर बड़े रणनीतिक परमाणु हमले की धमकी देना","जानबूझकर अपनी परमाणु स्थिति को अस्पष्ट करना ताकि विरोधी इस बारे में अनिश्चित रहें कि हथियारों का वास्तव में उपयोग कब किया जाएगा","उपयोग की सीमा पार किए बिना एक जबरदस्त संकेत उपकरण के रूप में विवादित जल में परमाणु पनडुब्बियां तैनात करना"], a:"Using a low-yield tactical nuclear weapon early in a losing conventional war to shock the adversary into surrender", exp:"This horrifying strategic doctrine severely mathematically lowers the absolute threshold for global nuclear war in extreme conflicts like Ukraine."},
+  {topic:"geo", q:"What catastrophic global failure defines the 'Kindleberger Trap'?", h:"'किंडलबर्गर ट्रैप' को क्या विनाशकारी वैश्विक विफलता परिभाषित करती है?", opt:["The danger that a rising power fails to provide global public goods, leading to a collapse of the international order","A scenario where competing hegemons simultaneously withdraw from multilateral institutions, paralyzing global governance","The risk that economic interdependence between rivals creates mutual vulnerability rather than reducing conflict","A theory arguing that technological disruption inevitably destabilizes the international balance of power over time"], h_opt:["यह खतरा कि एक उभरती शक्ति वैश्विक सार्वजनिक सामान प्रदान करने में विफल रहती है, जिससे अंतर्राष्ट्रीय व्यवस्था का पतन होता है","एक परिदृश्य जहां प्रतिस्पर्धी आधिपत्य एक साथ बहुपक्षीय संस्थाओं से पीछे हटते हैं, वैश्विक शासन को पंगु बनाते हैं","जोखिम कि प्रतिद्वंद्वियों के बीच आर्थिक अन्योन्याश्रितता संघर्ष को कम करने के बजाय पारस्परिक भेद्यता पैदा करती है","एक सिद्धांत जो तर्क देता है कि तकनीकी व्यवधान अनिवार्य रूप से समय के साथ अंतर्राष्ट्रीय शक्ति संतुलन को अस्थिर करता है"], a:"The danger that a rising power fails to provide global public goods, leading to a collapse of the international order", exp:"Named directly after the catastrophic lack of international leadership that fundamentally caused the devastating 1930s Great Depression."},
+  {topic:"geo", q:"How does a devastating geopolitical 'Security Dilemma Spiral' mechanically operate?", h:"एक विनाशकारी भू-राजनीतिक 'सुरक्षा दुविधा सर्पिल' यांत्रिक रूप से कैसे काम करता है?", opt:["When defensive actions by State A are perceived as offensive by State B, confirming fears and triggering an arms race","When two states both pursue deterrence strategies that inadvertently raise the risk of a miscalculated first strike","When a military alliance expands its membership in ways that the opposing bloc interprets as an encirclement strategy","When economic sanctions imposed on a rival state provoke retaliatory measures that escalate into broader confrontation"], h_opt:["जब राज्य A द्वारा रक्षात्मक कार्यों को राज्य B द्वारा आक्रामक माना जाता है, आशंकाओं की पुष्टि करता है और हथियारों की होड़ पैदा करता है","जब दो राज्य दोनों निवारण रणनीतियाँ अपनाते हैं जो अनजाने में गलत गणना वाले पहले हमले के जोखिम को बढ़ाती हैं","जब एक सैन्य गठबंधन अपनी सदस्यता का विस्तार उन तरीकों से करता है जिसे विरोधी ब्लॉक घेराव रणनीति के रूप में व्याख्यायित करता है","जब एक प्रतिद्वंद्वी राज्य पर लगाए गए आर्थिक प्रतिबंध जवाबी उपायों को उकसाते हैं जो व्यापक टकराव में बढ़ जाते हैं"], a:"When defensive actions by State A are perceived as offensive by State B, confirming fears and triggering an arms race", exp:"This absolutely flawlessly mathematically explains the extremely rapid aggressive militarization of the Indo-Pacific despite nobody actually wanting war."},
+  {topic:"geo", q:"What severe economic catastrophe defines 'Geoeconomic Fragmentation'?", h:"कौन सी गंभीर आर्थिक तबाही 'जियोइकोनॉमिक फ्रैगमेंटेशन' को परिभाषित करती है?", opt:["The fragmentation of global trade and technology systems into competing geopolitical blocs reversing decades of integration","A coordinated international effort to reform multilateral trade rules that have become outdated for the digital economy","The growing divergence in regulatory standards between major economies creating compliance burdens for global firms","A strategic shift by multinational corporations toward regional supply chains to reduce exposure to geopolitical risk"], h_opt:["दशकों के एकीकरण को उलटते हुए प्रतिस्पर्धी भू-राजनीतिक गुटों में वैश्विक व्यापार और तकनीकी प्रणालियों का विखंडन","डिजिटल अर्थव्यवस्था के लिए पुराने हो चुके बहुपक्षीय व्यापार नियमों में सुधार के लिए एक समन्वित अंतर्राष्ट्रीय प्रयास","प्रमुख अर्थव्यवस्थाओं के बीच नियामक मानकों में बढ़ता विचलन वैश्विक फर्मों के लिए अनुपालन बोझ पैदा कर रहा है","भू-राजनीतिक जोखिम के जोखिम को कम करने के लिए क्षेत्रीय आपूर्ति श्रृंखलाओं की ओर बहुराष्ट्रीय निगमों का रणनीतिक बदलाव"], a:"The fragmentation of global trade and technology systems into competing geopolitical blocs reversing decades of integration", exp:"The IMF severely warns this terrifying fragmentation could catastrophically permanently cost the interconnected global economy up to 7% of total GDP."}
+];
+// ─── ANSWER SHUFFLE ENGINE ───────────────────────────────────────────────────
+// Shuffles each question's options at runtime so correct answers are distributed
+// evenly across A/B/C/D positions, breaking long repetitive streaks.
+
+function seededRandom(seed) {
+  // Simple deterministic RNG so shuffle is stable on reload
+  let s = seed;
+  return function() {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  };
+}
+
+function shuffleQuizOptions() {
+  // Track last 2 positions used to avoid 3+ streaks of the same letter
+  let prevPositions = [];
+
+  quiz.forEach((q, qi) => {
+    if (!q.opt || q.opt.length !== 4) return;
+
+    const rng = seededRandom(qi * 7919 + 3571); // unique seed per question
+
+    // Build index array [0,1,2,3], find current correct index
+    const correctText = q.a;
+    let correctIdx = q.opt.findIndex(o => o === correctText || o.includes(correctText) || correctText.includes(o));
+    if (correctIdx === -1) correctIdx = 1; // fallback — was B
+
+    // Determine which positions are forbidden (would cause 3-streak)
+    const forbidden = new Set();
+    if (prevPositions.length >= 2 && prevPositions[prevPositions.length-1] === prevPositions[prevPositions.length-2]) {
+      forbidden.add(prevPositions[prevPositions.length-1]);
+    }
+
+    // Pick target position for correct answer (not forbidden, ideally varies)
+    let targetPos;
+    const available = [0,1,2,3].filter(p => !forbidden.has(p));
+    // Weighted random from available
+    targetPos = available[Math.floor(rng() * available.length)];
+
+    // Build new order: put correct answer at targetPos
+    const others = [0,1,2,3].filter(i => i !== correctIdx);
+    // Shuffle others with seeded rng
+    for (let i = others.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [others[i], others[j]] = [others[j], others[i]];
+    }
+
+    // Build the final permutation
+    const newOrder = new Array(4);
+    newOrder[targetPos] = correctIdx;
+    const remainingPositions = [0,1,2,3].filter(p => p !== targetPos);
+    remainingPositions.forEach((pos, i) => { newOrder[pos] = others[i]; });
+
+    // Apply permutation to opt and h_opt
+    q.opt = newOrder.map(i => q.opt[i]);
+    if (q.h_opt && q.h_opt.length === 4) {
+      q.h_opt = newOrder.map(i => q.h_opt[i]);
+    }
+
+    // Update the answer field to be the correct option text (for answer slide display)
+    // q.a stays as the correct text — no change needed, answer slide uses q.a directly
+
+    prevPositions.push(targetPos);
+    if (prevPositions.length > 3) prevPositions.shift();
+  });
+}
+shuffleQuizOptions();
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── STAGE BUILDER ───
+const stage = document.getElementById('stage');
+const labels = ['A','B','C','D'];
+const topicMeta = {
+  ai:  { label: 'Artificial Intelligence',       cls: 'ai' },
+  geo: { label: 'Geopolitics & Current Affairs', cls: 'geo' },
+  ent: { label: 'Entrepreneurship',              cls: 'ent' },
+  gk:  { label: 'Geopolitics & Current Affairs', cls: 'geo' }
+};
+
+// Fisher-Yates shuffle — keeps answer correct regardless of position
+function shuffleOpts(opts) {
+  const arr = opts.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function buildSlides() {
+  // Intro slide
+  stage.insertAdjacentHTML('beforeend', `
+    <div class="slide active slide-intro" data-type="intro">
+      <div class="intro-eyebrow">E-Cell CIIEIR · Doon University Presents</div>
+      <h1>IgniteX<br>Quiz Series</h1>
+      <div class="topic-pills">
+        <span class="topic-pill ai">🤖 Artificial Intelligence</span>
+        <span class="topic-pill geo">🌍 Geopolitics &amp; Current Affairs</span>
+        <span class="topic-pill ent">🚀 Entrepreneurship</span>
+      </div>
+    </div>`);
+
+  quiz.forEach((q, i) => {
+    const n = String(i + 1).padStart(2, '0');
+    
+    // 1. Question slide (English)
+    stage.insertAdjacentHTML('beforeend', `
+      <div class="slide slide-question" data-type="question" data-qi="${i}" data-topic="${q.topic}">
+        <div class="qnum">Question ${n} of ${quiz.length}</div>
+        <div class="q-text">${q.q}</div>
+        <div class="q-big-num">${i + 1}</div>
+      </div>`);
+
+    // 2. Hindi Question slide (Cleaned up as requested)
+    stage.insertAdjacentHTML('beforeend', `
+      <div class="slide slide-hindi" data-type="hindi" data-qi="${i}" data-topic="${q.topic}">
+        <div class="hindi-qnum">प्रश्न ${n} / ${quiz.length}</div>
+        <div class="hindi-question">${q.h}</div>
+        <div class="hindi-divider"></div>
+      </div>`);
+
+    // 3. English Options Slide — shuffle options
+    const shuffledEn = shuffleOpts(q.opt || [], q.a);
+    const optCardsEn = shuffledEn.map((o, j) =>
+      `<div class="opt-card"><span class="opt-label">${labels[j]}</span><span class="opt-text">${o}</span></div>`
+    ).join('');
+    stage.insertAdjacentHTML('beforeend', `
+      <div class="slide slide-options" data-type="options" data-qi="${i}" data-topic="${q.topic}">
+        <div class="opts-q">${q.q}</div>
+        <div class="options-grid">${optCardsEn}</div>
+      </div>`);
+
+    // 4. Hindi Options Slide — use same shuffle order mapped to Hindi
+    const hindiOptsSource = q.h_opt || q.opt;
+    // Map shuffled English order to Hindi options
+    const shuffledHi = shuffledEn.map(enOpt => {
+      const idx = (q.opt || []).indexOf(enOpt);
+      return (hindiOptsSource && idx >= 0) ? hindiOptsSource[idx] : enOpt;
+    });
+    const optCardsHi = shuffledHi.map((o, j) =>
+      `<div class="opt-card"><span class="opt-label">${labels[j]}</span><span class="opt-text" style="font-size: 1.05rem;">${o}</span></div>`
+    ).join('');
+    stage.insertAdjacentHTML('beforeend', `
+      <div class="slide slide-options slide-options-hindi" data-type="options-hindi" data-qi="${i}" data-topic="${q.topic}">
+        <div class="opts-q">${q.h}</div>
+        <div class="options-grid">${optCardsHi}</div>
+      </div>`);
+
+    // 5. Answer slide
+    stage.insertAdjacentHTML('beforeend', `
+      <div class="slide slide-answer" data-type="answer" data-qi="${i}" data-topic="${q.topic}">
+        <div class="ans-label">Correct Answer</div>
+        <div class="ans-answer">${q.a}</div>
+        <div class="ans-card">
+          <div class="ans-card-label">Did You Know?</div>
+          <p class="exp-text">${q.exp}</p>
+        </div>
+      </div>`);
+  });
+
+  // End slide
+  stage.insertAdjacentHTML('beforeend', `
+    <div class="slide slide-end" data-type="end">
+      <div class="end-confetti">🎉</div>
+      <h1>That's a Wrap!</h1>
+      <p>Thank you for playing IgniteX Quiz Series</p>
+      <div class="end-badge">E-Cell CIIEIR · Doon University</div>
+    </div>`);
+}
+buildSlides();
+
+// ─── NAV LOGIC ───
+const allSlides   = document.querySelectorAll('.slide');
+let current       = 0;
+const ringCircle  = document.getElementById('ring-circle');
+const timerNum    = document.getElementById('timer-num');
+const timerWrap   = document.getElementById('timer-wrap');
+const topicBadge  = document.getElementById('topic-badge');
+let timerInterval = null;
+let tickInterval  = null;
+let isMuted       = false;
+
+const CIRC = 2 * Math.PI * 34;
+const endSlideIndex = allSlides.length - 1;
+
+function stopAllAudio() {
+  clearInterval(timerInterval);
+  clearInterval(tickInterval);
+  timerWrap.classList.remove('visible');
+  try {
+    qSound.pause();
+    qSound.currentTime = 0;
+  } catch(e) {}
+}
+
+function goTo(next) {
+  if (next < 0 || next >= allSlides.length) return;
+  const from = allSlides[current];
+  const to   = allSlides[next];
+  
+  from.classList.add('exit');
+  from.classList.remove('active');
+  setTimeout(() => from.classList.remove('exit'), 400);
+  to.classList.add('active');
+  current = next;
+
+  // Sound triggers
+  if (to.dataset.type === 'question' && !isMuted) {
+    qSound.currentTime = 0;
+    qSound.play().catch(() => {});
+  }
+  if (to.dataset.type === 'answer' && !isMuted) {
+    playAnswerReveal();
+  }
+
+  // Timer Routing Logic
+  if (to.dataset.type === 'options') {
+    // Only start the timer if arriving from the Hindi Question slide (prevents restart on back-navigation)
+    if (from && from.dataset.type !== 'options-hindi') {
+      startTimer(parseInt(to.dataset.qi) >= 30 ? 120 : 60);
+    }
+  } else if (to.dataset.type === 'options-hindi') {
+    // Do nothing! Let the timer keep ticking uninterrupted. Ensure UI is visible.
+    timerWrap.classList.add('visible');
+  } else {
+    // Stop on all other slides (Question, Hindi Question, Answer, Intro, End)
+    stopTimer();
+  }
+
+  updateHeader(to);
+  updateProgress();
+  updateTopicBadge(to);
+}
+
+// ─── RULES SOUND (top-level so _openRules can always reach it) ───
+function playRulesSound(round) {
+  try {
+    ensureAudioCtx();
+    const ctx = audioCtx; const now = ctx.currentTime;
+    const roundFreqs = {
+      1: [220, 277.18, 329.63, 440],
+      2: [246.94, 311.13, 369.99, 493.88],
+      3: [261.63, 329.63, 392.00, 523.25, 659.25]
+    };
+    const freqs = roundFreqs[round] || roundFreqs[1];
+    const bass = ctx.createOscillator(); const bassG = ctx.createGain();
+    bass.connect(bassG); bassG.connect(ctx.destination);
+    bass.type = 'sine'; bass.frequency.setValueAtTime(55 * round * 0.5, now);
+    bass.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+    bassG.gain.setValueAtTime(0,now); bassG.gain.linearRampToValueAtTime(0.6, now+0.02);
+    bassG.gain.exponentialRampToValueAtTime(0.001, now+0.4);
+    bass.start(now); bass.stop(now+0.41);
+    const sw = ctx.createOscillator(); const swG = ctx.createGain(); const swF = ctx.createBiquadFilter();
+    sw.connect(swF); swF.connect(swG); swG.connect(ctx.destination);
+    sw.type='sawtooth'; swF.type='lowpass';
+    swF.frequency.setValueAtTime(150, now+0.05); swF.frequency.exponentialRampToValueAtTime(4000, now+0.6);
+    sw.frequency.setValueAtTime(80, now+0.05); sw.frequency.exponentialRampToValueAtTime(1200, now+0.6);
+    swG.gain.setValueAtTime(0, now+0.05); swG.gain.linearRampToValueAtTime(0.15, now+0.1);
+    swG.gain.exponentialRampToValueAtTime(0.001, now+0.65);
+    sw.start(now+0.05); sw.stop(now+0.66);
+    freqs.forEach((freq, i) => {
+      const o = ctx.createOscillator(); const g = ctx.createGain(); const pan = ctx.createStereoPanner();
+      o.connect(g); g.connect(pan); pan.connect(ctx.destination);
+      o.type = 'triangle'; o.frequency.value = freq; pan.pan.value = (i - freqs.length/2) * 0.3;
+      const t = now + 0.28 + i * 0.06;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.22, t+0.04);
+      g.gain.setValueAtTime(0.22, t+0.2); g.gain.exponentialRampToValueAtTime(0.001, t+0.8);
+      o.start(t); o.stop(t+0.81);
+    });
+    const sh = ctx.createOscillator(); const shG = ctx.createGain();
+    sh.connect(shG); shG.connect(ctx.destination);
+    sh.type='sine'; sh.frequency.setValueAtTime(2200, now+0.35);
+    sh.frequency.exponentialRampToValueAtTime(3400, now+0.7);
+    shG.gain.setValueAtTime(0, now+0.35); shG.gain.linearRampToValueAtTime(0.06, now+0.38);
+    shG.gain.exponentialRampToValueAtTime(0.001, now+0.75);
+    sh.start(now+0.35); sh.stop(now+0.76);
+  } catch(e) {}
+}
+
+// ─── KEYBOARD CONTROLS ───
+// Consolidated handler — registered here so it is always active regardless of
+// DOMContentLoaded execution order.  Rules-overlay keys (0/8/9) are also handled
+// here with a defensive DOM lookup so they never silently fail.
+
+let _activeRulesPanel = null;
+
+function _openRules(panelId, round) {
+  const prev = document.getElementById(_activeRulesPanel);
+  if (prev) prev.classList.remove('active');
+  if (_activeRulesPanel === panelId) { _activeRulesPanel = null; return; }
+  _activeRulesPanel = panelId;
+  const el = document.getElementById(panelId);
+  if (el) el.classList.add('active');
+  try { playRulesSound(round); } catch(e) {}
+}
+
+function _closeAllRules() {
+  const el = document.getElementById(_activeRulesPanel);
+  if (el) el.classList.remove('active');
+  _activeRulesPanel = null;
+}
+
+document.addEventListener('keydown', e => {
+  // ── Rules overlays ──────────────────────────────────────────────────────────
+  if (e.key === '0') { e.preventDefault(); _openRules('rules-r1', 1); return; }
+  if (e.key === '9') { e.preventDefault(); _openRules('rules-r2', 2); return; }
+  if (e.key === '8') { e.preventDefault(); _openRules('rules-r3', 3); return; }
+
+  // ── Navigation ──────────────────────────────────────────────────────────────
+  if (e.key === '1') {
+    e.preventDefault();
+    stopAllAudio();
+    goTo(0);
+    return;
+  }
+  if (e.key === 'm' || e.key === 'M') {
+    e.preventDefault();
+    isMuted = !isMuted;
+    qSound.muted = isMuted;
+    if (isMuted) {
+      clearInterval(tickInterval);
+    } else {
+      if (allSlides[current] && (allSlides[current].dataset.type === 'options' || allSlides[current].dataset.type === 'options-hindi')) {
+        tickInterval = setInterval(() => playTick(timerRemaining <= 10), 1000);
+      }
+    }
+    showMuteToast(isMuted);
+    return;
+  }
+  if (e.key === 'End') { e.preventDefault(); goTo(endSlideIndex); return; }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    if (_activeRulesPanel) { _closeAllRules(); return; }
+    const navPanel = document.getElementById('nav-panel');
+    if (navPanel && navPanel.classList.contains('open')) { closeNav(); return; }
+    if (document.body.classList.contains('edit-mode')) cancelEditMode();
+    return;
+  }
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+    e.preventDefault();
+    const toNext = current + 1;
+    if (toNext <= endSlideIndex) goTo(toNext);
+    return;
+  }
+  if (e.key === 'ArrowLeft') { 
+    e.preventDefault(); 
+    if (current > 0) goTo(current - 1); 
+  }
+});
+
+let timerRemaining = 0;
+
+function startTimer(seconds) {
+  clearInterval(timerInterval);
+  clearInterval(tickInterval);
+  timerRemaining = seconds;
+
+  timerNum.textContent = seconds;
+  timerWrap.classList.add('visible');
+
+  const fill = document.getElementById('ring-circle');
+  fill.style.stroke = 'var(--teal)';
+  fill.style.strokeDasharray = CIRC;
+  fill.style.strokeDashoffset = 0;
+  timerNum.style.color = 'var(--teal)';
+
+  if (!isMuted) {
+    tickInterval = setInterval(() => playTick(timerRemaining <= 10), 1000);
+  }
+
+  timerInterval = setInterval(() => {
+    timerRemaining--;
+    timerNum.textContent = timerRemaining;
+    fill.style.strokeDashoffset = (1 - timerRemaining / seconds) * CIRC;
+    if (timerRemaining <= 5) {
+      timerNum.style.color = '#f87171';
+      fill.style.stroke = '#f87171';
+    }
+    if (timerRemaining <= 0) {
+      clearInterval(timerInterval);
+      clearInterval(tickInterval);
+      if (!isMuted) playUrgentBeep();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  clearInterval(tickInterval);
+  timerWrap.classList.remove('visible');
+}
+
+function updateHeader(slide) {
+  const counter = document.getElementById('header-counter');
+  if (slide.dataset.type === 'intro' || slide.dataset.type === 'end') {
+    counter.textContent = '';
+  } else {
+    counter.textContent = `Q ${parseInt(slide.dataset.qi) + 1} / ${quiz.length}`;
+  }
+}
+
+function updateProgress() {
+  document.getElementById('progress-fill').style.width =
+    (current / (allSlides.length - 1)) * 100 + '%';
+}
+
+function updateTopicBadge(slide) {
+  const topic = slide.dataset.topic;
+  if (!topic) { topicBadge.className = ''; topicBadge.textContent = ''; return; }
+  const meta = topicMeta[topic];
+  topicBadge.textContent = meta.label;
+  topicBadge.className = 'visible ' + meta.cls;
+}
+
+// ─── MUTE TOAST ───
+const muteToast = document.getElementById('mute-toast');
+let muteToastTimer = null;
+function showMuteToast(muted) {
+  muteToast.innerHTML = muted ? '🔇 &nbsp;Sound Muted' : '🔊 &nbsp;Sound On';
+  muteToast.classList.add('show');
+  clearTimeout(muteToastTimer);
+  muteToastTimer = setTimeout(() => muteToast.classList.remove('show'), 1800);
+}
+
+// ─── STARS & PARTICLES ───
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 100; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() < 0.2 ? 3 : 2;
+  s.style.cssText = `width:${size}px; height:${size}px; top:${Math.random()*100}%; left:${Math.random()*100}%; --dur:${Math.random()*4+2}s; --peak:${Math.random()*0.55+0.15}; animation-delay:${Math.random()*5}s;`;
+  starsEl.appendChild(s);
+}
+
+const particlesEl = document.getElementById('particles');
+const particleColors = ['var(--indigo)', 'var(--teal)', 'var(--accent)', 'rgba(251,191,36,0.8)'];
+for (let i = 0; i < 18; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.cssText = `left:${Math.random()*100}%; background:${particleColors[Math.floor(Math.random()*particleColors.length)]}; --dur:${Math.random()*8+6}s; animation-delay:${Math.random()*10}s; width:${Math.random()*3+1}px; height:${Math.random()*3+1}px;`;
+  particlesEl.appendChild(p);
+}
+// ─── QUESTION NAVIGATOR ───
+function buildNavGrid() {
+  const grid = document.getElementById('nav-grid');
+  grid.innerHTML = '';
+  quiz.forEach((q, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-q-btn ' + q.topic;
+    btn.textContent = i + 1;
+    btn.title = q.q.substring(0, 70) + '…';
+    btn.addEventListener('click', () => {
+      closeNav();
+      stopAllAudio();
+      goTo(1 + i * 5);
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function updateNavActive() {
+  document.querySelectorAll('.nav-q-btn').forEach((btn, i) => {
+    const base = 1 + i * 5;
+    btn.classList.toggle('active', current >= base && current <= base + 4);
+  });
+}
+
+function openNav() {
+  document.getElementById('nav-panel').classList.add('open');
+  document.getElementById('nav-overlay').classList.add('open');
+  updateNavActive();
+}
+function closeNav() {
+  document.getElementById('nav-panel').classList.remove('open');
+  document.getElementById('nav-overlay').classList.remove('open');
+}
+
+// ─── EDIT MODE (pure functions — no DOM access at definition time) ───
+function enableEditMode() {
+  document.body.classList.add('edit-mode');
+  document.getElementById('fab-edit').classList.add('active');
+  document.getElementById('edit-mode-bar').classList.add('visible');
+  const sels = ['.q-text','.opts-q','.hindi-question','.ans-answer','.exp-text','.opt-text'];
+  sels.forEach(s => document.querySelectorAll(s).forEach(el => { el.contentEditable = 'true'; el.spellcheck = false; }));
+}
+
+function disableEditMode() {
+  document.querySelectorAll('[contenteditable="true"]').forEach(el => { el.contentEditable = 'false'; });
+  document.body.classList.remove('edit-mode');
+  document.getElementById('fab-edit').classList.remove('active');
+  document.getElementById('edit-mode-bar').classList.remove('visible');
+}
+
+function saveEditMode() {
+  document.querySelectorAll('.slide').forEach(slide => {
+    const qi = parseInt(slide.dataset.qi);
+    if (isNaN(qi)) return;
+    const type = slide.dataset.type;
+    if (type === 'question') { const qt = slide.querySelector('.q-text'); if (qt) quiz[qi].q = qt.innerText; }
+    else if (type === 'hindi') { const hq = slide.querySelector('.hindi-question'); if (hq) quiz[qi].h = hq.innerText; }
+    else if (type === 'options') { const ots = slide.querySelectorAll('.opt-text'); if (ots.length) quiz[qi].opt = Array.from(ots).map(e => e.innerText); }
+    else if (type === 'options-hindi') { const ots = slide.querySelectorAll('.opt-text'); if (ots.length) quiz[qi].h_opt = Array.from(ots).map(e => e.innerText); }
+    else if (type === 'answer') {
+      const aa = slide.querySelector('.ans-answer'); if (aa) quiz[qi].a = aa.innerText;
+      const ex = slide.querySelector('.exp-text'); if (ex) quiz[qi].exp = ex.innerText;
+    }
+  });
+  disableEditMode();
+  const t = document.getElementById('edit-toast');
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function cancelEditMode() { disableEditMode(); }
+
+// ─── ALL DOM-DEPENDENT INIT — runs after full page parse ───
+document.addEventListener('DOMContentLoaded', function() {
+
+  // Patch goTo to sync nav + buttons
+  const _origGoTo = goTo;
+  goTo = function(next) {
+    _origGoTo(next);
+    updateNavActive();
+    document.getElementById('btn-prev').disabled = (current <= 0);
+    document.getElementById('btn-next').disabled = (current >= allSlides.length - 1);
+  };
+
+  // Navigator
+  document.getElementById('fab-nav').addEventListener('click', () => {
+    document.getElementById('nav-panel').classList.contains('open') ? closeNav() : openNav();
+  });
+  document.getElementById('nav-close').addEventListener('click', closeNav);
+  document.getElementById('nav-overlay').addEventListener('click', closeNav);
+
+  // Prev / Next buttons
+  document.getElementById('btn-prev').addEventListener('click', () => { if (current > 0) goTo(current - 1); });
+  document.getElementById('btn-next').addEventListener('click', () => { if (current < allSlides.length - 1) goTo(current + 1); });
+  document.getElementById('btn-prev').disabled = true;
+
+  // Edit mode buttons
+  document.getElementById('fab-edit').addEventListener('click', () => {
+    document.body.classList.contains('edit-mode') ? saveEditMode() : enableEditMode();
+  });
+  document.getElementById('edit-save-btn').addEventListener('click', saveEditMode);
+  document.getElementById('edit-cancel-btn').addEventListener('click', cancelEditMode);
+
+  // Extra keyboard shortcuts — N = navigator, E = edit
+  document.addEventListener('keydown', function(e) {
+    if ((e.key === 'n' || e.key === 'N') && !document.body.classList.contains('edit-mode')) {
+      e.preventDefault();
+      const navPanel = document.getElementById('nav-panel');
+      navPanel && navPanel.classList.contains('open') ? closeNav() : openNav();
+      return;
+    }
+    if ((e.key === 'e' || e.key === 'E') && !document.body.classList.contains('edit-mode')) {
+      e.preventDefault(); enableEditMode(); return;
+    }
+  });
+
+  // Build nav grid and set initial button state
+  buildNavGrid();
+  document.getElementById('btn-next').disabled = false;
+
+  // Make rules content editable in edit mode
+  const origEnableEdit = enableEditMode;
+  enableEditMode = function() {
+    origEnableEdit();
+    document.querySelectorAll('.rules-overlay [contenteditable="false"]').forEach(el => {
+      el.contentEditable = 'true'; el.spellcheck = false;
+    });
+  };
+  const origDisableEdit = disableEditMode;
+  disableEditMode = function() {
+    document.querySelectorAll('.rules-overlay [contenteditable="true"]').forEach(el => {
+      el.contentEditable = 'false';
+    });
+    origDisableEdit();
+  };
+
+});
+
+</script>
+
+<!-- Question Navigator Panel -->
+<div id="nav-panel">
+  <div id="nav-panel-header">
+    <h3>⊞ Question Navigator</h3>
+    <button id="nav-close">✕ Close</button>
+  </div>
+  <div id="nav-legend">
+    <span class="leg-item ai">🤖 AI</span>
+    <span class="leg-item geo">🌍 Geo</span>
+    <span class="leg-item ent">🚀 Startup</span>
+    <span class="leg-item gk">📚 GK</span>
+  </div>
+  <div id="nav-grid"></div>
+</div>
+<div id="nav-overlay"></div>
+
+<!-- Prev / Next buttons -->
+<button class="slide-nav-btn" id="btn-prev" title="Previous (←)">‹</button>
+<button class="slide-nav-btn" id="btn-next" title="Next (→)">›</button>
+
+<!-- Edit Mode Bar -->
+<div class="edit-mode-bar" id="edit-mode-bar">
+  <span>✎ Edit Mode Active — Click any text to edit</span>
+  <button class="edit-save-btn" id="edit-save-btn">✓ Save Changes</button>
+  <button class="edit-cancel-btn" id="edit-cancel-btn">✕ Cancel</button>
+</div>
+
+<!-- Edit Toast -->
+<div id="edit-toast">✓ Changes saved!</div>
+
+<!-- Floating Action Buttons -->
+<div class="fab-group">
+  <button class="fab" id="fab-nav" title="Question Navigator (N)">⊞</button>
+  <button class="fab" id="fab-edit" title="Edit Mode (E)">✎</button>
+</div>
+
+<!-- ═══ ROUND 1 RULES OVERLAY (key: 0) ═══ -->
+<div class="rules-overlay" id="rules-r1">
+  <div class="rules-round-badge r1">⚡ Round 1</div>
+  <h1 class="rules-title r1" contenteditable="false">Rapid Fire — Open Round</h1>
+  <p class="rules-subtitle" contenteditable="false">Speed &amp; accuracy — no negative marking</p>
+  <div class="rules-body two-col">
+    <div class="rules-card teal">
+      <div class="rules-card-title teal">📋 Format &amp; Response System</div>
+      <ul class="rules-list">
+        <li contenteditable="false">Questions are open to ALL teams simultaneously.</li>
+        <li contenteditable="false">This is a <strong>Raise Your Hand</strong> round — the first person to raise their hand earns the right to answer first.</li>
+        <li contenteditable="false">If the first person answers incorrectly, others who raised hands are called in the order they signaled.</li>
+        <li contenteditable="false">Only the designated spokesperson's answer is recorded.</li>
+      </ul>
+    </div>
+    <div class="rules-card indigo">
+      <div class="rules-card-title indigo">🏆 Scoring — Round 1</div>
+      <div class="scoring-row">
+        <span class="scoring-badge pos">Points+</span>
+        <span class="scoring-desc" contenteditable="false">Points are awarded based on <strong>correctness and swiftness</strong>. The faster you answer, the more you score.</span>
+      </div>
+      <div class="scoring-row">
+        <span class="scoring-badge zero">0</span>
+        <span class="scoring-desc" contenteditable="false"><strong>No negative marking</strong> in Round 1. Incorrect answers carry zero penalty — attempt confidently.</span>
+      </div>
+      <div class="scoring-row" style="margin-top:10px; padding-top:10px; border-top: 1px solid rgba(255,255,255,0.05);">
+        <span style="font-size:0.75rem;color:var(--muted)" contenteditable="false">⚠️ After this round, a leaderboard is NOT published. Teams carry cumulative scores into Round 2.</span>
+      </div>
+    </div>
+  </div>
+  <span class="rules-close-hint">Press 0 to close</span>
+  <span class="rules-editable-note">Press E to enter edit mode</span>
+</div>
+
+<!-- ═══ ROUND 2 RULES OVERLAY (key: 9) ═══ -->
+<div class="rules-overlay" id="rules-r2">
+  <div class="rules-round-badge r2">🔥 Round 2</div>
+  <h1 class="rules-title r2" contenteditable="false">High Stakes — Penalty Round</h1>
+  <p class="rules-subtitle" contenteditable="false">Top 5 teams advance · Leaderboard published after this round</p>
+  <div class="rules-body two-col">
+    <div class="rules-card amber">
+      <div class="rules-card-title amber">📋 Format</div>
+      <ul class="rules-list">
+        <li contenteditable="false">Questions are still open to all teams — same Raise Your Hand mechanism applies.</li>
+        <li contenteditable="false">Intensity increases: penalties apply for wrong answers. Think before you speak.</li>
+        <li contenteditable="false">The <strong>Leaderboard</strong> is published immediately after Round 2 concludes.</li>
+        <li contenteditable="false">Only the <strong>Top 5 teams</strong> with the highest cumulative scores advance to the Final Round.</li>
+      </ul>
+    </div>
+    <div class="rules-card amber">
+      <div class="rules-card-title amber">🏆 Scoring — Round 2</div>
+      <div class="scoring-row">
+        <span class="scoring-badge pos">+2</span>
+        <span class="scoring-desc" contenteditable="false">Points for every <strong>correct answer</strong>.</span>
+      </div>
+      <div class="scoring-row">
+        <span class="scoring-badge neg">−1</span>
+        <span class="scoring-desc" contenteditable="false">Point deducted for every <strong>incorrect answer</strong>. Choose wisely — wrong guesses hurt.</span>
+      </div>
+      <div class="scoring-row" style="margin-top:8px; padding-top:10px; border-top: 1px solid rgba(255,255,255,0.05);">
+        <span style="font-size:0.75rem; color:var(--amber); font-weight:600;" contenteditable="false">🏅 Bottom teams are eliminated after this round. Only Top 5 proceed.</span>
+      </div>
+    </div>
+  </div>
+  <span class="rules-close-hint">Press 9 to close</span>
+  <span class="rules-editable-note">Press E to enter edit mode</span>
+</div>
+
+<!-- ═══ ROUND 3 RULES OVERLAY (key: 8) ═══ -->
+<div class="rules-overlay" id="rules-r3">
+  <div class="rules-round-badge r3">👑 Round 3 — The Final</div>
+  <h1 class="rules-title r3" contenteditable="false">Direct &amp; Pass — Champions Decide</h1>
+  <p class="rules-subtitle" contenteditable="false">Reserved for Top 5 teams · Every team gets equal turns · High risk, high reward</p>
+  <div class="rules-body two-col">
+    <div class="rules-card accent">
+      <div class="rules-card-title accent">🔁 The Direct &amp; Pass Flow</div>
+      <ul class="rules-list">
+        <li contenteditable="false"><strong>Direct Question:</strong> Every question starts as a "Direct" for one specific team — they have the first right to answer.</li>
+        <li contenteditable="false"><strong>Rotation:</strong> Q1 → Team 1 Direct · Q2 → Team 2 Direct · continues fairly for all 5 teams.</li>
+        <li contenteditable="false"><strong>Discussion Time:</strong> The Direct team gets <strong>20 seconds</strong> to discuss and give an answer.</li>
+        <li contenteditable="false"><strong>Passing:</strong> If the Direct team says "Pass", the question moves to the next team in alphabetical order.</li>
+        <li contenteditable="false"><strong>Pass Time:</strong> The receiving team gets only <strong>5 seconds</strong> to answer or pass again.</li>
+        <li contenteditable="false"><strong>End Condition:</strong> A question ends once someone answers (correctly or wrongly), or if it passes through all 5 teams unanswered.</li>
+      </ul>
+    </div>
+    <div class="rules-card accent">
+      <div class="rules-card-title accent">🏆 Scoring — Round 3</div>
+      <div class="scoring-row">
+        <span class="scoring-badge pos">+10</span>
+        <span class="scoring-desc" contenteditable="false">Correct answer on your <strong>Direct Question</strong> (your own assigned question).</span>
+      </div>
+      <div class="scoring-row">
+        <span class="scoring-badge zero">0</span>
+        <span class="scoring-desc" contenteditable="false">Wrong answer on your <strong>Direct Question</strong> — no penalty for failing your own question.</span>
+      </div>
+      <div class="scoring-row">
+        <span class="scoring-badge pos">+5</span>
+        <span class="scoring-desc" contenteditable="false">Correct answer on a <strong>Passed Question</strong> (half points — you had more time to think).</span>
+      </div>
+      <div class="scoring-row">
+        <span class="scoring-badge neg">−2</span>
+        <span class="scoring-desc" contenteditable="false">Wrong answer on a <strong>Passed Question</strong> — penalty applies for stealing and failing.</span>
+      </div>
+    </div>
+  </div>
+  <span class="rules-close-hint">Press 8 to close</span>
+  <span class="rules-editable-note">Press E to enter edit mode</span>
+</div>
+
+</body>
+</html>
